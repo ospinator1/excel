@@ -23,7 +23,7 @@ private:
     int boardHeight;
     int columnWidth;
     int pointHeight;
-
+    int o;
 public:
     BackgammonForm()
     {
