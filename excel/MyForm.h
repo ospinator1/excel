@@ -5,24 +5,37 @@
 using namespace System;
 using namespace System::Windows::Forms;
 using namespace System::Drawing;
+using namespace System::Collections::Generic;
 
 public ref class CircleForm : public Form
 {
 private:
-    Point circleCenter;
+    List<Point>^ circleCenters;
+    List<bool>^ isDraggingFlags;
     int circleRadius;
-    bool isDragging;
+    int draggedCircleIndex;
 
 public:
     CircleForm()
     {
-        this->Text = "Movable Circle";
+        this->Text = "Movable Circles";
         this->DoubleBuffered = true;
         this->ClientSize = System::Drawing::Size(800, 600);
 
-        circleCenter = Point(this->ClientSize.Width / 2, this->ClientSize.Height / 2);
-        circleRadius = 50;
-        isDragging = false;
+        circleRadius = 30;
+        circleCenters = gcnew List<Point>();
+        isDraggingFlags = gcnew List<bool>();
+        draggedCircleIndex = -1;
+
+        // Initialize 10 circles in random positions
+        Random^ rand = gcnew Random();
+        for (int i = 0; i < 10; i++)
+        {
+            int x = rand->Next(circleRadius, this->ClientSize.Width - circleRadius);
+            int y = rand->Next(circleRadius, this->ClientSize.Height - circleRadius);
+            circleCenters->Add(Point(x, y));
+            isDraggingFlags->Add(false);
+        }
 
         // Set up event handlers
         this->MouseDown += gcnew MouseEventHandler(this, &CircleForm::Form_MouseDown);
@@ -37,43 +50,59 @@ private:
         Graphics^ g = e->Graphics;
         g->SmoothingMode = System::Drawing::Drawing2D::SmoothingMode::AntiAlias;
 
-        // Draw circle
-        g->FillEllipse(Brushes::Blue,
-            circleCenter.X - circleRadius,
-            circleCenter.Y - circleRadius,
-            circleRadius * 2,
-            circleRadius * 2);
-        g->DrawEllipse(Pens::Black,
-            circleCenter.X - circleRadius,
-            circleCenter.Y - circleRadius,
-            circleRadius * 2,
-            circleRadius * 2);
+        // Draw all circles
+        for (int i = 0; i < circleCenters->Count; i++)
+        {
+            Color circleColor = (i == draggedCircleIndex) ? Color::Red : Color::Blue;
+            Brush^ brush = gcnew SolidBrush(circleColor);
+
+            g->FillEllipse(brush,
+                circleCenters[i].X - circleRadius,
+                circleCenters[i].Y - circleRadius,
+                circleRadius * 2,
+                circleRadius * 2);
+
+            g->DrawEllipse(Pens::Black,
+                circleCenters[i].X - circleRadius,
+                circleCenters[i].Y - circleRadius,
+                circleRadius * 2,
+                circleRadius * 2);
+        }
     }
 
     void Form_MouseDown(Object^ sender, MouseEventArgs^ e)
     {
-        // Check if mouse is inside the circle
-        int dx = e->X - circleCenter.X;
-        int dy = e->Y - circleCenter.Y;
-        if (dx * dx + dy * dy <= circleRadius * circleRadius)
+        // Check if mouse is inside any circle
+        for (int i = 0; i < circleCenters->Count; i++)
         {
-            isDragging = true;
-            this->Cursor = Cursors::Hand;
+            int dx = e->X - circleCenters[i].X;
+            int dy = e->Y - circleCenters[i].Y;
+            if (dx * dx + dy * dy <= circleRadius * circleRadius)
+            {
+                isDraggingFlags[i] = true;
+                draggedCircleIndex = i;
+                this->Cursor = Cursors::Hand;
+                break;
+            }
         }
     }
 
     void Form_MouseMove(Object^ sender, MouseEventArgs^ e)
     {
-        if (isDragging)
+        if (draggedCircleIndex != -1 && isDraggingFlags[draggedCircleIndex])
         {
-            circleCenter = e->Location;
+            circleCenters[draggedCircleIndex] = e->Location;
             this->Invalidate(); // Force redraw
         }
     }
 
     void Form_MouseUp(Object^ sender, MouseEventArgs^ e)
     {
-        isDragging = false;
-        this->Cursor = Cursors::Default;
+        if (draggedCircleIndex != -1)
+        {
+            isDraggingFlags[draggedCircleIndex] = false;
+            draggedCircleIndex = -1;
+            this->Cursor = Cursors::Default;
+        }
     }
 };
