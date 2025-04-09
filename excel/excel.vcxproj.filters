@@ -31,5 +31,8 @@
     <Image Include="скриншоты работы\2025-04-05_11-07-15.png">
       <Filter>скриншоты работы</Filter>
     </Image>
+    <Image Include="..\..\2025-04-08_09-03-36.png">
+      <Filter>скриншоты работы</Filter>
+    </Image>
   </ItemGroup>
 </Project>
