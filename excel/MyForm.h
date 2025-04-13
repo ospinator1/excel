@@ -5,11 +5,7 @@ using namespace System::ComponentModel;
 using namespace System::Collections;
 using namespace System::Collections::Generic;
 using namespace System::Windows::Forms;
-using namespace System::Data;
 using namespace System::Drawing;
-using namespace System::IO;
-using namespace System::Runtime::Serialization;
-using namespace System::Runtime::Serialization::Formatters::Binary;
 
 namespace RoomPlannerApp {
 
@@ -21,7 +17,7 @@ namespace RoomPlannerApp {
         Point Location;
         int RotationAngle;
         bool IsLocked;
-        System::Drawing::Size Size;  // используем System::Drawing::Size
+        System::Drawing::Size Size;  // Используем System::Drawing::Size
 
         // Конструктор класса
         FurnitureData(String^ path, Point loc, int angle, bool locked, System::Drawing::Size size) {
@@ -30,18 +26,6 @@ namespace RoomPlannerApp {
             RotationAngle = angle;
             IsLocked = locked;
             Size = size;
-        }
-    };
-
-    // Класс для данных о комнате
-    [Serializable]
-    public ref class RoomData {
-    public:
-        String^ RoomImagePath;
-        List<FurnitureData^>^ FurnitureList;  // список мебели
-
-        RoomData() {
-            FurnitureList = gcnew List<FurnitureData^>();  // инициализация списка
         }
     };
 
@@ -61,8 +45,7 @@ namespace RoomPlannerApp {
         Label^ titleLabel;
 
         Image^ roomImage;
-        String^ roomImagePath;
-        List<PictureBox^>^ furnitureItems;  // список мебели
+        List<PictureBox^>^ furnitureItems;  // Список мебели
         bool isDragging;
         Point dragStartPoint;
         PictureBox^ draggedFurniture;
@@ -75,6 +58,7 @@ namespace RoomPlannerApp {
             furnitureItems = gcnew List<PictureBox^>();
             isDragging = false;
             isRoomSelected = false;
+            this->Resize += gcnew System::EventHandler(this, &MyForm::MyForm_Resize);
         }
 
     protected:
@@ -113,8 +97,7 @@ namespace RoomPlannerApp {
                 static_cast<System::Int32>(static_cast<System::Byte>(240)),
                 static_cast<System::Int32>(static_cast<System::Byte>(240)));
             this->roomPictureBox->BorderStyle = System::Windows::Forms::BorderStyle::FixedSingle;
-            this->roomPictureBox->Location = System::Drawing::Point(50, 50);
-            this->roomPictureBox->Name = L"roomPictureBox";
+            this->roomPictureBox->Location = System::Drawing::Point(0, 0);
             this->roomPictureBox->Size = System::Drawing::Size(700, 500);
             this->roomPictureBox->SizeMode = System::Windows::Forms::PictureBoxSizeMode::Zoom;
             this->roomPictureBox->TabStop = false;
@@ -129,7 +112,6 @@ namespace RoomPlannerApp {
                 static_cast<System::Byte>(0)));
             this->addRoomButton->ForeColor = System::Drawing::SystemColors::ControlLightLight;
             this->addRoomButton->Location = System::Drawing::Point(10, 50);
-            this->addRoomButton->Name = L"addRoomButton";
             this->addRoomButton->Size = System::Drawing::Size(150, 55);
             this->addRoomButton->TabIndex = 0;
             this->addRoomButton->Text = L"Добавить комнату";
@@ -145,7 +127,6 @@ namespace RoomPlannerApp {
                 static_cast<System::Byte>(0)));
             this->addFurnitureButton->ForeColor = System::Drawing::SystemColors::ControlLightLight;
             this->addFurnitureButton->Location = System::Drawing::Point(170, 50);
-            this->addFurnitureButton->Name = L"addFurnitureButton";
             this->addFurnitureButton->Size = System::Drawing::Size(150, 40);
             this->addFurnitureButton->TabIndex = 1;
             this->addFurnitureButton->Text = L"Добавить мебель";
@@ -161,7 +142,6 @@ namespace RoomPlannerApp {
                 static_cast<System::Byte>(0)));
             this->rotateFurnitureButton->ForeColor = System::Drawing::SystemColors::ControlLightLight;
             this->rotateFurnitureButton->Location = System::Drawing::Point(330, 50);
-            this->rotateFurnitureButton->Name = L"rotateFurnitureButton";
             this->rotateFurnitureButton->Size = System::Drawing::Size(120, 40);
             this->rotateFurnitureButton->TabIndex = 2;
             this->rotateFurnitureButton->Text = L"Повернуть";
@@ -177,7 +157,6 @@ namespace RoomPlannerApp {
                 static_cast<System::Byte>(0)));
             this->deleteButton->ForeColor = System::Drawing::SystemColors::ControlLightLight;
             this->deleteButton->Location = System::Drawing::Point(460, 50);
-            this->deleteButton->Name = L"deleteButton";
             this->deleteButton->Size = System::Drawing::Size(120, 40);
             this->deleteButton->TabIndex = 3;
             this->deleteButton->Text = L"Удалить";
@@ -193,7 +172,6 @@ namespace RoomPlannerApp {
                 static_cast<System::Byte>(0)));
             this->saveButton->ForeColor = System::Drawing::SystemColors::ControlLightLight;
             this->saveButton->Location = System::Drawing::Point(590, 50);
-            this->saveButton->Name = L"saveButton";
             this->saveButton->Size = System::Drawing::Size(150, 40);
             this->saveButton->TabIndex = 4;
             this->saveButton->Text = L"Сохранить проект";
@@ -202,19 +180,18 @@ namespace RoomPlannerApp {
 
             // openFileDialog
             this->openFileDialog->FileName = L"openFileDialog1";
-            this->openFileDialog->Filter = L"Изображения|*.png;*.jpg;*.jpeg|Все файлы|*.*"; // Изменён фильтр для загрузки изображений
+            this->openFileDialog->Filter = L"Изображения|*.png;*.jpg;*.jpeg|Все файлы|*.*";
 
             // saveFileDialog
-            this->saveFileDialog->Filter = L"PNG Files|*.png"; // Устанавливаем расширение для сохранения изображений
+            this->saveFileDialog->Filter = L"PNG Files|*.png";
 
             // drawingPanel
-            this->drawingPanel->AutoScroll = true;
+            this->drawingPanel->AutoScroll = false;
             this->drawingPanel->BackColor = System::Drawing::Color::White;
             this->drawingPanel->Controls->Add(this->roomPictureBox);
             this->drawingPanel->Dock = System::Windows::Forms::DockStyle::Fill;
             this->drawingPanel->Location = System::Drawing::Point(0, 100);
             this->drawingPanel->Name = L"drawingPanel";
-            this->drawingPanel->Size = System::Drawing::Size(984, 661);
             this->drawingPanel->TabIndex = 6;
 
             // controlPanel
@@ -238,7 +215,6 @@ namespace RoomPlannerApp {
             this->titleLabel->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 14, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
                 static_cast<System::Byte>(0)));
             this->titleLabel->Location = System::Drawing::Point(10, 10);
-            this->titleLabel->Name = L"titleLabel";
             this->titleLabel->Size = System::Drawing::Size(216, 24);
             this->titleLabel->TabIndex = 5;
             this->titleLabel->Text = L"Room Planner 2D Pro";
@@ -246,7 +222,6 @@ namespace RoomPlannerApp {
             // MyForm
             this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
             this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-            this->BackColor = System::Drawing::SystemColors::Control;
             this->ClientSize = System::Drawing::Size(984, 761);
             this->Controls->Add(this->drawingPanel);
             this->Controls->Add(this->controlPanel);
@@ -260,15 +235,33 @@ namespace RoomPlannerApp {
         }
 #pragma endregion
 
-    private:
+        void ScaleElements() {
+            float scaleX = (this->ClientSize.Width - 20) / 700.0f; // Учитываем отступы
+            float scaleY = (this->ClientSize.Height - controlPanel->Height - 20) / 500.0f; // Учитываем панель управления
+
+            // Устанавливаем размеры и позиции
+            this->roomPictureBox->Size = System::Drawing::Size(static_cast<int>(700 * scaleX), static_cast<int>(500 * scaleY));
+            this->roomPictureBox->Location = System::Drawing::Point(0, 0);
+
+            // Масштабируем мебель
+            for each(PictureBox ^ furniture in furnitureItems) {
+                furniture->Size = System::Drawing::Size(static_cast<int>(100 * scaleX), static_cast<int>(100 * scaleY));
+                furniture->Location = Point(static_cast<int>(furniture->Location.X * scaleX), static_cast<int>(furniture->Location.Y * scaleY));
+            }
+        }
+
+        void MyForm_Resize(System::Object^ sender, System::EventArgs^ e) {
+            ScaleElements();
+        }
+
         void addRoomButton_Click(System::Object^ sender, System::EventArgs^ e) {
             if (openFileDialog->ShowDialog() == System::Windows::Forms::DialogResult::OK) {
                 try {
-                    roomImagePath = openFileDialog->FileName;
-                    roomImage = Image::FromFile(roomImagePath);
+                    roomImage = Image::FromFile(openFileDialog->FileName);
                     roomPictureBox->Image = roomImage;
                     roomPictureBox->SizeMode = PictureBoxSizeMode::Zoom;
                     isRoomSelected = true;
+                    ScaleElements(); // Устанавливаем масштаб
                 }
                 catch (Exception^ ex) {
                     MessageBox::Show("Не удалось загрузить изображение комнаты: " + ex->Message, "Ошибка",
@@ -307,6 +300,7 @@ namespace RoomPlannerApp {
                     drawingPanel->Controls->Add(newFurniture);
                     newFurniture->BringToFront();
                     furnitureItems->Add(newFurniture);
+                    ScaleElements(); // Устанавливаем масштаб
                 }
                 catch (Exception^ ex) {
                     MessageBox::Show("Не удалось загрузить изображение мебели: " + ex->Message, "Ошибка",
@@ -367,7 +361,6 @@ namespace RoomPlannerApp {
                     // Удаление комнаты
                     roomPictureBox->Image = nullptr;
                     roomImage = nullptr;
-                    roomImagePath = nullptr;
                     isRoomSelected = false;
                 }
                 else {
