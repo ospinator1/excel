@@ -21,9 +21,15 @@
     <ClCompile Include="main.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="MyForm1.cpp">
+      <Filter>Файлы заголовков</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MyForm.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="MyForm1.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
@@ -32,6 +38,12 @@
       <Filter>скриншоты работы</Filter>
     </Image>
     <Image Include="..\..\2025-04-08_09-03-36.png">
+      <Filter>скриншоты работы</Filter>
+    </Image>
+    <Image Include="..\..\2025-04-09_12-22-21.png">
+      <Filter>скриншоты работы</Filter>
+    </Image>
+    <Image Include="..\..\2025-04-09_12-22-14.png">
       <Filter>скриншоты работы</Filter>
     </Image>
   </ItemGroup>

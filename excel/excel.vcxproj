@@ -129,9 +129,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MyForm1.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MyForm.h">
+      <FileType>CppForm</FileType>
+    </ClInclude>
+    <ClInclude Include="MyForm1.h">
       <FileType>CppForm</FileType>
     </ClInclude>
   </ItemGroup>
@@ -142,6 +146,8 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\2025-04-08_09-03-36.png" />
+    <Image Include="..\..\2025-04-09_12-22-14.png" />
+    <Image Include="..\..\2025-04-09_12-22-21.png" />
     <Image Include="скриншоты работы\2025-04-05_11-07-15.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
