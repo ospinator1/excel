@@ -4,13 +4,10 @@ using namespace System;
 using namespace System::Windows::Forms;
 
 [STAThread]
-int main(array<String^>^ args)
-{
+int main(array<String^>^ args) {
     Application::EnableVisualStyles();
     Application::SetCompatibleTextRenderingDefault(false);
-
-    CircleForm^ form = gcnew CircleForm();
-    Application::Run(form);
-
+    RoomPlannerApp::MyForm form;
+    Application::Run(% form);
     return 0;
 }
