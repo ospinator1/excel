@@ -7,8 +7,8 @@
 #include <vector>
 using namespace System;
 using namespace System::ComponentModel;
-using namespace System::Collections; // Required for ArrayList (though List is preferred)
-using namespace System::Collections::Generic; // Required for List
+using namespace System::Collections;
+using namespace System::Collections::Generic;
 using namespace System::Windows::Forms;
 using namespace System::Data;
 using namespace System::Drawing;
@@ -22,6 +22,8 @@ namespace RoomPlannerApp {
         PictureBox^ roomPictureBox;
         Button^ addRoomButton;
         Button^ addFurnitureButton;
+        Button^ rotateFurnitureButton;
+        Button^ deleteButton; // Кнопка для удаления
         OpenFileDialog^ openFileDialog;
         Panel^ drawingPanel;
 
@@ -30,6 +32,7 @@ namespace RoomPlannerApp {
         bool isDragging;
         Point dragStartPoint;
         PictureBox^ draggedFurniture;
+        bool isRoomSelected; // Флаг, чтобы знать, выбрана ли комната
 
     public:
         MyForm(void)
@@ -37,6 +40,7 @@ namespace RoomPlannerApp {
             InitializeComponent();
             furnitureItems = gcnew List<PictureBox^>();
             isDragging = false;
+            isRoomSelected = false; // Комната изначально не выбрана
         }
 
     protected:
@@ -57,6 +61,8 @@ namespace RoomPlannerApp {
             this->roomPictureBox = (gcnew System::Windows::Forms::PictureBox());
             this->addRoomButton = (gcnew System::Windows::Forms::Button());
             this->addFurnitureButton = (gcnew System::Windows::Forms::Button());
+            this->rotateFurnitureButton = (gcnew System::Windows::Forms::Button());
+            this->deleteButton = (gcnew System::Windows::Forms::Button());
             this->openFileDialog = (gcnew System::Windows::Forms::OpenFileDialog());
             this->drawingPanel = (gcnew System::Windows::Forms::Panel());
             (cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->roomPictureBox))->BeginInit();
@@ -70,6 +76,7 @@ namespace RoomPlannerApp {
             this->roomPictureBox->Name = L"roomPictureBox";
             this->roomPictureBox->Size = System::Drawing::Size(600, 400);
             this->roomPictureBox->TabStop = false;
+            this->roomPictureBox->Click += gcnew System::EventHandler(this, &MyForm::roomPictureBox_Click);
 
             // addRoomButton
             this->addRoomButton->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 14, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
@@ -93,6 +100,28 @@ namespace RoomPlannerApp {
             this->addFurnitureButton->UseVisualStyleBackColor = true;
             this->addFurnitureButton->Click += gcnew System::EventHandler(this, &MyForm::addFurnitureButton_Click);
 
+            // rotateFurnitureButton
+            this->rotateFurnitureButton->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+                static_cast<System::Byte>(0)));
+            this->rotateFurnitureButton->Location = System::Drawing::Point(150, 12);
+            this->rotateFurnitureButton->Name = L"rotateFurnitureButton";
+            this->rotateFurnitureButton->Size = System::Drawing::Size(90, 40);
+            this->rotateFurnitureButton->TabIndex = 2;
+            this->rotateFurnitureButton->Text = L"Повернуть";
+            this->rotateFurnitureButton->UseVisualStyleBackColor = true;
+            this->rotateFurnitureButton->Click += gcnew System::EventHandler(this, &MyForm::rotateFurnitureButton_Click);
+
+            // deleteButton
+            this->deleteButton->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+                static_cast<System::Byte>(0)));
+            this->deleteButton->Location = System::Drawing::Point(236, 12);
+            this->deleteButton->Name = L"deleteButton";
+            this->deleteButton->Size = System::Drawing::Size(80, 40);
+            this->deleteButton->TabIndex = 3;
+            this->deleteButton->Text = L"Удалить";
+            this->deleteButton->UseVisualStyleBackColor = true;
+            this->deleteButton->Click += gcnew System::EventHandler(this, &MyForm::deleteButton_Click);
+
             // openFileDialog
             this->openFileDialog->FileName = L"openFileDialog1";
             this->openFileDialog->Filter = L"Image Files|*.jpg;*.jpeg;*.png;*.bmp";
@@ -104,12 +133,14 @@ namespace RoomPlannerApp {
             this->drawingPanel->Location = System::Drawing::Point(0, 0);
             this->drawingPanel->Name = L"drawingPanel";
             this->drawingPanel->Size = System::Drawing::Size(784, 561);
-            this->drawingPanel->TabIndex = 2;
+            this->drawingPanel->TabIndex = 4;
 
             // MyForm
             this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
             this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
             this->ClientSize = System::Drawing::Size(784, 561);
+            this->Controls->Add(this->deleteButton);
+            this->Controls->Add(this->rotateFurnitureButton);
             this->Controls->Add(this->addFurnitureButton);
             this->Controls->Add(this->addRoomButton);
             this->Controls->Add(this->drawingPanel);
@@ -128,9 +159,10 @@ namespace RoomPlannerApp {
                     roomImage = Image::FromFile(openFileDialog->FileName);
                     roomPictureBox->Image = roomImage;
                     roomPictureBox->SizeMode = PictureBoxSizeMode::Zoom;
+                    isRoomSelected = true; // Отмечаем, что комната выбрана
                 }
                 catch (Exception^ ex) {
-                    MessageBox::Show("Error loading image: " + ex->Message, "Error",
+                    MessageBox::Show("Ошибка загрузки изображения комнаты: " + ex->Message, "Ошибка",
                         MessageBoxButtons::OK, MessageBoxIcon::Error);
                 }
             }
@@ -148,6 +180,7 @@ namespace RoomPlannerApp {
                     newFurniture->BackColor = Color::Transparent;
                     newFurniture->Location = Point(100, 100);
                     newFurniture->BorderStyle = BorderStyle::FixedSingle;
+                    newFurniture->Tag = 0; // 0 означает угол не повернут
 
                     // Make furniture draggable
                     newFurniture->MouseDown += gcnew MouseEventHandler(this, &MyForm::Furniture_MouseDown);
@@ -159,10 +192,73 @@ namespace RoomPlannerApp {
                     furnitureItems->Add(newFurniture);
                 }
                 catch (Exception^ ex) {
-                    MessageBox::Show("Error loading furniture image: " + ex->Message, "Error",
+                    MessageBox::Show("Ошибка загрузки изображения мебели: " + ex->Message, "Ошибка",
                         MessageBoxButtons::OK, MessageBoxIcon::Error);
                 }
             }
+        }
+
+        void rotateFurnitureButton_Click(System::Object^ sender, System::EventArgs^ e) {
+            if (draggedFurniture != nullptr && draggedFurniture != roomPictureBox) {
+                int currentAngle = safe_cast<int>(draggedFurniture->Tag);
+                currentAngle += 90;
+                if (currentAngle >= 360) {
+                    currentAngle = 0;
+                }
+                draggedFurniture->Tag = currentAngle;
+                RotateFurniture(draggedFurniture, currentAngle);
+            }
+            else {
+                MessageBox::Show("Пожалуйста, выберите элемент мебели, который хотите повернуть.", "Ошибка выбора",
+                    MessageBoxButtons::OK, MessageBoxIcon::Information);
+            }
+        }
+
+        void deleteButton_Click(System::Object^ sender, System::EventArgs^ e) {
+            if (draggedFurniture != nullptr) {
+                if (draggedFurniture == roomPictureBox) {
+                    // Удаление комнаты
+                    roomPictureBox->Image = nullptr;
+                    roomImage = nullptr;
+                    isRoomSelected = false; // Снимаем флаг, что комната выбрана
+                }
+                else {
+                    // Удаление мебели
+                    drawingPanel->Controls->Remove(draggedFurniture);
+                    furnitureItems->Remove(draggedFurniture);
+                }
+                draggedFurniture = nullptr;
+            }
+            else {
+                MessageBox::Show("Пожалуйста, выберите объект для удаления.", "Ошибка выбора",
+                    MessageBoxButtons::OK, MessageBoxIcon::Information);
+            }
+        }
+
+        void roomPictureBox_Click(System::Object^ sender, System::EventArgs^ e) {
+            // При клике на roomPictureBox устанавливаем draggedFurniture на roomPictureBox
+            // Это позволяет нам удалять комнату
+            draggedFurniture = roomPictureBox;
+        }
+
+        void RotateFurniture(PictureBox^ furniture, int angle) {
+            if (furniture->Image == nullptr) return;
+
+            Bitmap^ original = gcnew Bitmap(furniture->Image);
+            Bitmap^ rotated = gcnew Bitmap(original->Width, original->Height);
+            rotated->SetResolution(original->HorizontalResolution, original->VerticalResolution);
+
+            Graphics^ g = Graphics::FromImage(rotated);
+            g->InterpolationMode = System::Drawing::Drawing2D::InterpolationMode::HighQualityBicubic;
+
+            PointF center = PointF(original->Width / 2.0f, original->Height / 2.0f);
+            g->TranslateTransform(center.X, center.Y);
+            g->RotateTransform(angle);
+            g->TranslateTransform(-center.X, -center.Y);
+            g->DrawImage(original, 0, 0);
+
+            delete g;
+            furniture->Image = rotated;
         }
 
         void Furniture_MouseDown(Object^ sender, MouseEventArgs^ e) {
@@ -186,7 +282,6 @@ namespace RoomPlannerApp {
         void Furniture_MouseUp(Object^ sender, MouseEventArgs^ e) {
             if (e->Button == System::Windows::Forms::MouseButtons::Left) {
                 isDragging = false;
-                draggedFurniture = nullptr;
             }
         }
     };
