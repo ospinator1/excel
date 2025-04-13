@@ -1,11 +1,5 @@
 #pragma once
 
-#include <windows.h>
-#include <stdlib.h>
-#include <string.h>
-#include <tchar.h>
-#include <vector>
-
 using namespace System;
 using namespace System::ComponentModel;
 using namespace System::Collections;
@@ -19,6 +13,7 @@ using namespace System::Runtime::Serialization::Formatters::Binary;
 
 namespace RoomPlannerApp {
 
+    // Класс для данных о мебели
     [Serializable]
     public ref class FurnitureData {
     public:
@@ -26,11 +21,10 @@ namespace RoomPlannerApp {
         Point Location;
         int RotationAngle;
         bool IsLocked;
-        Drawing::Size Size;
+        System::Drawing::Size Size;  // используем System::Drawing::Size
 
-        FurnitureData() {}
-
-        FurnitureData(String^ path, Point loc, int angle, bool locked, Drawing::Size size) {
+        // Конструктор класса
+        FurnitureData(String^ path, Point loc, int angle, bool locked, System::Drawing::Size size) {
             ImagePath = path;
             Location = loc;
             RotationAngle = angle;
@@ -39,14 +33,15 @@ namespace RoomPlannerApp {
         }
     };
 
+    // Класс для данных о комнате
     [Serializable]
     public ref class RoomData {
     public:
         String^ RoomImagePath;
-        List<FurnitureData^>^ FurnitureList;
+        List<FurnitureData^>^ FurnitureList;  // список мебели
 
         RoomData() {
-            FurnitureList = gcnew List<FurnitureData^>();
+            FurnitureList = gcnew List<FurnitureData^>();  // инициализация списка
         }
     };
 
@@ -61,14 +56,13 @@ namespace RoomPlannerApp {
         Button^ saveButton;
         OpenFileDialog^ openFileDialog;
         SaveFileDialog^ saveFileDialog;
-        SaveFileDialog^ imageSaveFileDialog;
         Panel^ drawingPanel;
         Panel^ controlPanel;
         Label^ titleLabel;
 
         Image^ roomImage;
         String^ roomImagePath;
-        List<PictureBox^>^ furnitureItems;
+        List<PictureBox^>^ furnitureItems;  // список мебели
         bool isDragging;
         Point dragStartPoint;
         PictureBox^ draggedFurniture;
@@ -106,7 +100,6 @@ namespace RoomPlannerApp {
             this->saveButton = (gcnew System::Windows::Forms::Button());
             this->openFileDialog = (gcnew System::Windows::Forms::OpenFileDialog());
             this->saveFileDialog = (gcnew System::Windows::Forms::SaveFileDialog());
-            this->imageSaveFileDialog = (gcnew System::Windows::Forms::SaveFileDialog());
             this->drawingPanel = (gcnew System::Windows::Forms::Panel());
             this->controlPanel = (gcnew System::Windows::Forms::Panel());
             this->titleLabel = (gcnew System::Windows::Forms::Label());
@@ -209,15 +202,10 @@ namespace RoomPlannerApp {
 
             // openFileDialog
             this->openFileDialog->FileName = L"openFileDialog1";
-            this->openFileDialog->Filter = L"Image Files|*.jpg;*.jpeg;*.png;*.bmp";
+            this->openFileDialog->Filter = L"Изображения|*.png;*.jpg;*.jpeg|Все файлы|*.*"; // Изменён фильтр для загрузки изображений
 
             // saveFileDialog
-            this->saveFileDialog->Filter = L"Room Plan Files|*.png";
-            this->saveFileDialog->Title = L"Сохранить план комнаты";
-
-            // imageSaveFileDialog
-            this->imageSaveFileDialog->Filter = L"PNG Files|*.png|JPEG Files|*.jpg;*.jpeg|Bitmap Files|*.bmp";
-            this->imageSaveFileDialog->Title = L"Сохранить изображение комнаты";
+            this->saveFileDialog->Filter = L"PNG Files|*.png"; // Устанавливаем расширение для сохранения изображений
 
             // drawingPanel
             this->drawingPanel->AutoScroll = true;
@@ -303,7 +291,7 @@ namespace RoomPlannerApp {
 
                     PictureBox^ newFurniture = gcnew PictureBox();
                     newFurniture->Image = furnitureImage;
-                    newFurniture->Size = System::Drawing::Size(100, 100);
+                    newFurniture->Size = System::Drawing::Size(100, 100); // Задаем размер мебели
                     newFurniture->SizeMode = PictureBoxSizeMode::Zoom;
                     newFurniture->BackColor = Color::Transparent;
                     newFurniture->Location = Point(100, 100);
@@ -311,7 +299,7 @@ namespace RoomPlannerApp {
                     newFurniture->Tag = gcnew FurnitureData(furnitureImagePath, newFurniture->Location, 0, false, newFurniture->Size);
                     newFurniture->DoubleClick += gcnew System::EventHandler(this, &MyForm::Furniture_DoubleClick);
 
-                    // Make furniture draggable
+                    // Сделать мебель перетаскиваемой
                     newFurniture->MouseDown += gcnew MouseEventHandler(this, &MyForm::Furniture_MouseDown);
                     newFurniture->MouseMove += gcnew MouseEventHandler(this, &MyForm::Furniture_MouseMove);
                     newFurniture->MouseUp += gcnew MouseEventHandler(this, &MyForm::Furniture_MouseUp);
@@ -331,17 +319,17 @@ namespace RoomPlannerApp {
             PictureBox^ furniture = (PictureBox^)sender;
             FurnitureData^ data = (FurnitureData^)furniture->Tag;
 
-            // Toggle locked state
+            // Переключение состояния блокировки
             bool isLocked = furniture->BorderStyle == BorderStyle::Fixed3D;
 
             if (isLocked) {
-                // Unlock the furniture
+                // Разблокировка мебели
                 furniture->BorderStyle = BorderStyle::FixedSingle;
                 furniture->Cursor = Cursors::SizeAll;
                 data->IsLocked = false;
             }
             else {
-                // Lock the furniture
+                // Блокировка мебели
                 furniture->BorderStyle = BorderStyle::Fixed3D;
                 furniture->Cursor = Cursors::No;
                 data->IsLocked = true;
@@ -352,7 +340,7 @@ namespace RoomPlannerApp {
             if (draggedFurniture != nullptr && draggedFurniture != roomPictureBox) {
                 FurnitureData^ data = (FurnitureData^)draggedFurniture->Tag;
 
-                // Check if furniture is locked
+                // Проверка, заблокирована ли мебель
                 if (data->IsLocked) {
                     MessageBox::Show("Эта мебель заблокирована. Разблокируйте ее, дважды щелкнув по ней.",
                         "Мебель заблокирована", MessageBoxButtons::OK, MessageBoxIcon::Information);
@@ -402,28 +390,14 @@ namespace RoomPlannerApp {
                 return;
             }
 
-            saveFileDialog->FileName = "RoomPlan.png";
+            saveFileDialog->FileName = "RoomPlan.png"; // Название файла по умолчанию
             if (saveFileDialog->ShowDialog() == Windows::Forms::DialogResult::OK) {
                 try {
-                    RoomData^ roomData = gcnew RoomData();
-                    roomData->RoomImagePath = roomImagePath;
+                    Bitmap^ combinedImage = CombineRoomAndFurniture(); // Объединение комнаты и мебели
+                    combinedImage->Save(saveFileDialog->FileName, System::Drawing::Imaging::ImageFormat::Png);  // Сохранение как PNG
+                    delete combinedImage;
 
-                    for each(PictureBox ^ furniture in furnitureItems) {
-                        FurnitureData^ data = (FurnitureData^)furniture->Tag;
-                        // Update data with current state
-                        data->Location = furniture->Location;
-                        data->Size = furniture->Size;
-                        data->RotationAngle = ((FurnitureData^)furniture->Tag)->RotationAngle;
-                        data->IsLocked = (furniture->BorderStyle == BorderStyle::Fixed3D);
-                        roomData->FurnitureList->Add(data);
-                    }
-
-                    FileStream^ fs = gcnew FileStream(saveFileDialog->FileName, FileMode::Create);
-                    BinaryFormatter^ formatter = gcnew BinaryFormatter();
-                    formatter->Serialize(fs, roomData);
-                    fs->Close();
-
-                    MessageBox::Show("Проект успешно сохранен", "Сохранено",
+                    MessageBox::Show("Проект успешно сохранен в формате PNG", "Сохранено",
                         MessageBoxButtons::OK, MessageBoxIcon::Information);
                 }
                 catch (Exception^ ex) {
@@ -431,6 +405,28 @@ namespace RoomPlannerApp {
                         MessageBoxButtons::OK, MessageBoxIcon::Error);
                 }
             }
+        }
+
+        Bitmap^ CombineRoomAndFurniture() {
+            int width = roomPictureBox->Width;
+            int height = roomPictureBox->Height;
+            Bitmap^ combinedImage = gcnew Bitmap(width, height);
+            Graphics^ g = Graphics::FromImage(combinedImage);
+
+            // Рисуем комнату
+            if (roomImage != nullptr) {
+                g->DrawImage(roomImage, 0, 0, width, height);
+            }
+
+            // Рисуем мебель
+            for each(PictureBox ^ furniture in furnitureItems) {
+                if (furniture->Image != nullptr) {
+                    g->DrawImage(furniture->Image, furniture->Location.X, furniture->Location.Y, furniture->Width, furniture->Height);
+                }
+            }
+
+            delete g; // Освобождение ресурсов
+            return combinedImage;
         }
 
         void roomPictureBox_Click(System::Object^ sender, System::EventArgs^ e) {
@@ -463,7 +459,7 @@ namespace RoomPlannerApp {
                 PictureBox^ furniture = (PictureBox^)sender;
                 FurnitureData^ data = (FurnitureData^)furniture->Tag;
 
-                // Check if furniture is locked
+                // Проверка, заблокирована ли мебель
                 if (data->IsLocked) {
                     return;
                 }
@@ -479,7 +475,7 @@ namespace RoomPlannerApp {
             if (isDragging && draggedFurniture != nullptr) {
                 FurnitureData^ data = (FurnitureData^)draggedFurniture->Tag;
 
-                // Check if furniture is locked
+                // Проверка, заблокирована ли мебель
                 if (data->IsLocked) {
                     return;
                 }
@@ -488,17 +484,17 @@ namespace RoomPlannerApp {
                 newLocation.X += e->X - dragStartPoint.X;
                 newLocation.Y += e->Y - dragStartPoint.Y;
 
-                // Get room boundaries
+                // Получаем границы комнаты
                 int roomLeft = roomPictureBox->Left;
                 int roomTop = roomPictureBox->Top;
                 int roomWidth = roomPictureBox->Width;
                 int roomHeight = roomPictureBox->Height;
 
-                // Get furniture boundaries
+                // Получаем границы мебели
                 int furnitureWidth = draggedFurniture->Width;
                 int furnitureHeight = draggedFurniture->Height;
 
-                // Check for collision with room boundaries
+                // Проверка на столкновение с границами комнаты
                 if (newLocation.X < roomLeft) {
                     newLocation.X = roomLeft;
                 }
