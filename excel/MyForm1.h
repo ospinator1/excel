@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+#include <vector>
 #include "FurnitureData.h"
 
 using namespace System;
@@ -10,7 +12,8 @@ using namespace System::Windows::Forms;
 using namespace System::Drawing;
 
 namespace RoomPlannerApp {
-    public ref class RoomPlannerForm : public System::Windows::Forms::Form {
+
+    public ref class MyForm : public System::Windows::Forms::Form {
     private:
         PictureBox^ roomPictureBox;
         Button^ addRoomButton;
@@ -25,27 +28,19 @@ namespace RoomPlannerApp {
         Label^ titleLabel;
 
         Image^ roomImage;
-        List<PictureBox^>^ furnitureItems;
+        List<PictureBox^>^ furnitureItems;  // Список мебели
         bool isDragging;
         Point dragStartPoint;
         PictureBox^ draggedFurniture;
         bool isRoomSelected;
 
     public:
-        RoomPlannerForm(void);
-
-    protected:
-        ~RoomPlannerForm();
+        MyForm();
+        virtual ~MyForm();
 
     private:
-        System::ComponentModel::Container^ components;
-
         void InitializeComponent(void);
         void ScaleElements();
-        void RotateFurniture(PictureBox^ furniture, int angle);
-        Bitmap^ CombineRoomAndFurniture();
-
-        // Event handlers
         void MyForm_Resize(System::Object^ sender, System::EventArgs^ e);
         void addRoomButton_Click(System::Object^ sender, System::EventArgs^ e);
         void addFurnitureButton_Click(System::Object^ sender, System::EventArgs^ e);
@@ -53,7 +48,9 @@ namespace RoomPlannerApp {
         void rotateFurnitureButton_Click(System::Object^ sender, System::EventArgs^ e);
         void deleteButton_Click(System::Object^ sender, System::EventArgs^ e);
         void saveButton_Click(System::Object^ sender, System::EventArgs^ e);
+        Bitmap^ CombineRoomAndFurniture();
         void roomPictureBox_Click(System::Object^ sender, System::EventArgs^ e);
+        void RotateFurniture(PictureBox^ furniture, int angle);
         void Furniture_MouseDown(Object^ sender, MouseEventArgs^ e);
         void Furniture_MouseMove(Object^ sender, MouseEventArgs^ e);
         void Furniture_MouseUp(Object^ sender, MouseEventArgs^ e);
