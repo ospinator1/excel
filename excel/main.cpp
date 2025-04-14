@@ -1,21 +1,14 @@
 #include "MyForm.h"
 
-using namespace System;
-using namespace System::Windows::Forms;
-
 [STAThread]
-int main(array<String^>^ args) {
-    // Включение визуальных стилей для приложения
+int main(array<System::String^>^ args)
+{
     Application::EnableVisualStyles();
-
-    // Настройка совместимости текстового отображения
     Application::SetCompatibleTextRenderingDefault(false);
 
-    // Создание экземпляра формы
+    // Создание окна с кругами
     CircleForm^ form = gcnew CircleForm();
-
-    // Запуск приложения
     Application::Run(form);
 
-    return 0; // Возвращаем 0 для успешного завершения
+    return 0;
 }

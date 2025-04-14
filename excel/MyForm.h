@@ -12,48 +12,47 @@ public ref class CircleForm : public Form
 private:
     List<Point>^ circleCenters;
     List<bool>^ isDraggingFlags;
-    List<bool>^ wasMovedFlags;  // Флаг, указывающий, был ли кружок перемещен
+    List<int>^ moveCounts;
     int circleRadius;
     int draggedCircleIndex;
+    Button^ diceButton;
+    Random^ random;
+    int currentDiceValue;
+    int remainingMoves;
 
 public:
     CircleForm()
     {
-        this->Text = "Movable Circles (One-time move)";
+        this->Text = "Dice-Controlled Circles";
         this->DoubleBuffered = true;
         this->ClientSize = System::Drawing::Size(800, 600);
 
         circleRadius = 30;
+
+        // Инициализация коллекций
         circleCenters = gcnew List<Point>();
         isDraggingFlags = gcnew List<bool>();
-        wasMovedFlags = gcnew List<bool>();
+        moveCounts = gcnew List<int>();
+
         draggedCircleIndex = -1;
+        random = gcnew Random();
+        currentDiceValue = 0;
+        remainingMoves = 0;
 
-        // Calculate vertical spacing between circles
-        int verticalSpacing = this->ClientSize.Height / 6;
-        int horizontalMargin = 100;
+        // Инициализация кнопки для броска кубика
+        diceButton = gcnew Button();
+        diceButton->Text = "Roll Dice";
+        diceButton->Size = System::Drawing::Size(100, 50);
+        diceButton->Location = Point(this->ClientSize.Width - 120, this->ClientSize.Height - 70);
+        diceButton->BackColor = Color::LightGray;
+        diceButton->Font = gcnew System::Drawing::Font("Arial", 12);
+        diceButton->Click += gcnew EventHandler(this, &CircleForm::DiceButton_Click);
+        this->Controls->Add(diceButton);
 
-        // Initialize 5 circles on the left side
-        for (int i = 1; i <= 5; i++)
-        {
-            int x = horizontalMargin;
-            int y = i * verticalSpacing;
-            circleCenters->Add(Point(x, y));
-            isDraggingFlags->Add(false);
-            wasMovedFlags->Add(false);
-        }
+        // Инициализация кругов
+        InitializeCircles();
 
-        // Initialize 5 circles on the right side
-        for (int i = 1; i <= 5; i++)
-        {
-            int x = this->ClientSize.Width - horizontalMargin;
-            int y = i * verticalSpacing;
-            circleCenters->Add(Point(x, y));
-            isDraggingFlags->Add(false);
-            wasMovedFlags->Add(false);
-        }
-
-        // Set up event handlers
+        // Настройка обработчиков событий
         this->MouseDown += gcnew MouseEventHandler(this, &CircleForm::Form_MouseDown);
         this->MouseMove += gcnew MouseEventHandler(this, &CircleForm::Form_MouseMove);
         this->MouseUp += gcnew MouseEventHandler(this, &CircleForm::Form_MouseUp);
@@ -61,17 +60,58 @@ public:
     }
 
 private:
+    void InitializeCircles()
+    {
+        int verticalSpacing = this->ClientSize.Height / 6;
+        int horizontalMargin = 100;
+
+        // Левые круги
+        for (int i = 1; i <= 5; i++)
+        {
+            circleCenters->Add(Point(horizontalMargin, i * verticalSpacing));
+            isDraggingFlags->Add(false);
+            moveCounts->Add(0);
+        }
+
+        // Правые круги
+        for (int i = 1; i <= 5; i++)
+        {
+            circleCenters->Add(Point(this->ClientSize.Width - horizontalMargin, i * verticalSpacing));
+            isDraggingFlags->Add(false);
+            moveCounts->Add(0);
+        }
+    }
+
+    void DiceButton_Click(Object^ sender, EventArgs^ e)
+    {
+        currentDiceValue = random->Next(1, 7);
+        remainingMoves = currentDiceValue;
+        this->Text = String::Format("Dice: {0} | Moves left: {1}", currentDiceValue, remainingMoves);
+
+        for (int i = 0; i < moveCounts->Count; i++)
+        {
+            moveCounts[i] = currentDiceValue;
+        }
+
+        this->Invalidate();
+    }
+
     void Form_Paint(Object^ sender, PaintEventArgs^ e)
     {
         Graphics^ g = e->Graphics;
         g->SmoothingMode = System::Drawing::Drawing2D::SmoothingMode::AntiAlias;
 
-        // Draw all circles
+        String^ diceText = String::Format("Dice: {0}", currentDiceValue);
+        g->DrawString(diceText, gcnew System::Drawing::Font("Arial", 14), Brushes::Black, 20, 20);
+
+        String^ movesText = String::Format("Moves left: {0}", remainingMoves);
+        g->DrawString(movesText, gcnew System::Drawing::Font("Arial", 14), Brushes::Black, 20, 50);
+
         for (int i = 0; i < circleCenters->Count; i++)
         {
-            // Кружки, которые уже перемещали, будут зелеными
-            Color circleColor = wasMovedFlags[i] ? Color::Green :
-                (i == draggedCircleIndex ? Color::Red : Color::Blue);
+            Color circleColor = moveCounts[i] > 0 ? Color::Blue : Color::Gray;
+            if (i == draggedCircleIndex) circleColor = Color::Red;
+
             Brush^ brush = gcnew SolidBrush(circleColor);
 
             g->FillEllipse(brush,
@@ -85,16 +125,23 @@ private:
                 circleCenters[i].Y - circleRadius,
                 circleRadius * 2,
                 circleRadius * 2);
+
+            String^ moveCountText = moveCounts[i].ToString();
+            System::Drawing::Font^ font = gcnew System::Drawing::Font("Arial", 10);
+            SizeF textSize = g->MeasureString(moveCountText, font);
+            g->DrawString(moveCountText, font, Brushes::White,
+                circleCenters[i].X - textSize.Width / 2,
+                circleCenters[i].Y - textSize.Height / 2);
         }
     }
 
     void Form_MouseDown(Object^ sender, MouseEventArgs^ e)
     {
-        // Check if mouse is inside any circle
+        if (remainingMoves <= 0) return;
+
         for (int i = 0; i < circleCenters->Count; i++)
         {
-            // Проверяем, что кружок еще не был перемещен
-            if (!wasMovedFlags[i])
+            if (moveCounts[i] > 0)
             {
                 int dx = e->X - circleCenters[i].X;
                 int dy = e->Y - circleCenters[i].Y;
@@ -111,23 +158,29 @@ private:
 
     void Form_MouseMove(Object^ sender, MouseEventArgs^ e)
     {
-        if (draggedCircleIndex != -1 && isDraggingFlags[draggedCircleIndex] && !wasMovedFlags[draggedCircleIndex])
+        if (draggedCircleIndex != -1 &&
+            isDraggingFlags[draggedCircleIndex] &&
+            moveCounts[draggedCircleIndex] > 0)
         {
-            circleCenters[draggedCircleIndex] = e->Location;
-            this->Invalidate(); // Force redraw
+            circleCenters[draggedCircleIndex] = e->Location; // Это правильный способ
+            this->Invalidate();
         }
     }
 
     void Form_MouseUp(Object^ sender, MouseEventArgs^ e)
     {
-        if (draggedCircleIndex != -1)
+        if (draggedCircleIndex != -1 && isDraggingFlags[draggedCircleIndex])
         {
             isDraggingFlags[draggedCircleIndex] = false;
-            // Помечаем кружок как перемещенный
-            wasMovedFlags[draggedCircleIndex] = true;
+            if (moveCounts[draggedCircleIndex] > 0)
+            {
+                moveCounts[draggedCircleIndex]--;
+                remainingMoves--;
+                this->Text = String::Format("Dice: {0} | Moves left: {1}", currentDiceValue, remainingMoves);
+            }
             draggedCircleIndex = -1;
             this->Cursor = Cursors::Default;
-            this->Invalidate(); // Обновляем отображение
+            this->Invalidate();
         }
     }
 };
