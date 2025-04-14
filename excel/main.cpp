@@ -1,13 +1,21 @@
-#include <Windows.h>
 #include "MyForm.h"
 
 using namespace System;
 using namespace System::Windows::Forms;
-using namespace RoomPlannerApp;
 
-int main(array<String^>^ args) { // Изменен тип на int
+[STAThread]
+int main(array<String^>^ args) {
+    // Включение визуальных стилей для приложения
     Application::EnableVisualStyles();
+
+    // Настройка совместимости текстового отображения
     Application::SetCompatibleTextRenderingDefault(false);
-    Application::Run(gcnew MyForm());
-    return 0; // Возврат 0
+
+    // Создание экземпляра формы
+    CircleForm^ form = gcnew CircleForm();
+
+    // Запуск приложения
+    Application::Run(form);
+
+    return 0; // Возвращаем 0 для успешного завершения
 }
