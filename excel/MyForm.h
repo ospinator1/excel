@@ -15,10 +15,11 @@ private:
     List<int>^ moveCounts;
     int circleRadius;
     int draggedCircleIndex;
-    Button^ diceButton;
+    Button^ rollDiceButton;
     Random^ random;
-    int currentDiceValue;
-    int remainingMoves;
+    int currentDiceValue1;
+    int currentDiceValue2;
+    int totalMoves;
 
 public:
     CircleForm()
@@ -36,18 +37,21 @@ public:
 
         draggedCircleIndex = -1;
         random = gcnew Random();
-        currentDiceValue = 0;
-        remainingMoves = 0;
 
-        // Инициализация кнопки для броска кубика
-        diceButton = gcnew Button();
-        diceButton->Text = "Roll Dice";
-        diceButton->Size = System::Drawing::Size(100, 50);
-        diceButton->Location = Point(this->ClientSize.Width - 120, this->ClientSize.Height - 70);
-        diceButton->BackColor = Color::LightGray;
-        diceButton->Font = gcnew System::Drawing::Font("Arial", 12);
-        diceButton->Click += gcnew EventHandler(this, &CircleForm::DiceButton_Click);
-        this->Controls->Add(diceButton);
+        // Инициализация общего количества ходов
+        currentDiceValue1 = 0;
+        currentDiceValue2 = 0;
+        totalMoves = 0;
+
+        // Инициализация кнопки для броска обоих кубиков
+        rollDiceButton = gcnew Button();
+        rollDiceButton->Text = "Roll Dice";
+        rollDiceButton->Size = System::Drawing::Size(100, 50);
+        rollDiceButton->Location = Point(this->ClientSize.Width - 160, this->ClientSize.Height - 70);
+        rollDiceButton->BackColor = Color::LightGray;
+        rollDiceButton->Font = gcnew System::Drawing::Font("Arial", 12);
+        rollDiceButton->Click += gcnew EventHandler(this, &CircleForm::RollDiceButton_Click);
+        this->Controls->Add(rollDiceButton);
 
         // Инициализация кругов
         InitializeCircles();
@@ -82,16 +86,23 @@ private:
         }
     }
 
-    void DiceButton_Click(Object^ sender, EventArgs^ e)
+    void RollDiceButton_Click(Object^ sender, EventArgs^ e)
     {
-        currentDiceValue = random->Next(1, 7);
-        remainingMoves = currentDiceValue;
-        this->Text = String::Format("Dice: {0} | Moves left: {1}", currentDiceValue, remainingMoves);
+        // Бросок обоих кубиков
+        currentDiceValue1 = random->Next(1, 7);
+        currentDiceValue2 = random->Next(1, 7);
+        totalMoves = currentDiceValue1 + currentDiceValue2; // Сумма ходов
 
+        // Установка количества ходов для кругов
         for (int i = 0; i < moveCounts->Count; i++)
         {
-            moveCounts[i] = currentDiceValue;
+            moveCounts[i] = totalMoves; // Установить общее количество ходов
         }
+
+        this->Text = String::Format("Dice 1: {0} | Dice 2: {1} | Total Moves: {2}",
+            currentDiceValue1,
+            currentDiceValue2,
+            totalMoves);
 
         this->Invalidate();
     }
@@ -101,11 +112,13 @@ private:
         Graphics^ g = e->Graphics;
         g->SmoothingMode = System::Drawing::Drawing2D::SmoothingMode::AntiAlias;
 
-        String^ diceText = String::Format("Dice: {0}", currentDiceValue);
-        g->DrawString(diceText, gcnew System::Drawing::Font("Arial", 14), Brushes::Black, 20, 20);
+        String^ diceText1 = String::Format("Dice 1: {0}", currentDiceValue1);
+        String^ diceText2 = String::Format("Dice 2: {0}", currentDiceValue2);
+        String^ totalMovesText = String::Format("Total Moves: {0}", totalMoves);
 
-        String^ movesText = String::Format("Moves left: {0}", remainingMoves);
-        g->DrawString(movesText, gcnew System::Drawing::Font("Arial", 14), Brushes::Black, 20, 50);
+        g->DrawString(diceText1, gcnew System::Drawing::Font("Arial", 14), Brushes::Black, 20, 20);
+        g->DrawString(diceText2, gcnew System::Drawing::Font("Arial", 14), Brushes::Black, 20, 50);
+        g->DrawString(totalMovesText, gcnew System::Drawing::Font("Arial", 14), Brushes::Black, 20, 80);
 
         for (int i = 0; i < circleCenters->Count; i++)
         {
@@ -137,7 +150,7 @@ private:
 
     void Form_MouseDown(Object^ sender, MouseEventArgs^ e)
     {
-        if (remainingMoves <= 0) return;
+        if (totalMoves <= 0) return; // Проверка на доступность ходов
 
         for (int i = 0; i < circleCenters->Count; i++)
         {
@@ -162,7 +175,7 @@ private:
             isDraggingFlags[draggedCircleIndex] &&
             moveCounts[draggedCircleIndex] > 0)
         {
-            circleCenters[draggedCircleIndex] = e->Location; // Это правильный способ
+            circleCenters[draggedCircleIndex] = e->Location;
             this->Invalidate();
         }
     }
@@ -175,8 +188,11 @@ private:
             if (moveCounts[draggedCircleIndex] > 0)
             {
                 moveCounts[draggedCircleIndex]--;
-                remainingMoves--;
-                this->Text = String::Format("Dice: {0} | Moves left: {1}", currentDiceValue, remainingMoves);
+                totalMoves--; // Уменьшаем общее количество оставшихся ходов
+                this->Text = String::Format("Dice 1: {0} | Dice 2: {1} | Total Moves: {2}",
+                    currentDiceValue1,
+                    currentDiceValue2,
+                    totalMoves);
             }
             draggedCircleIndex = -1;
             this->Cursor = Cursors::Default;
