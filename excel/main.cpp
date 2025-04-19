@@ -1,13 +1,14 @@
+#include <Windows.h>
 #include "MyForm.h"
-
+using namespace System;
+using namespace System::Windows::Forms;
 [STAThread]
-int main(array<System::String^>^ args)
+int main(array<String^>^ args)
 {
     Application::EnableVisualStyles();
     Application::SetCompatibleTextRenderingDefault(false);
 
-    // Создание окна с кругами
-    CircleForm^ form = gcnew CircleForm();
+    BackgammonForm^ form = gcnew BackgammonForm();
     Application::Run(form);
 
     return 0;
