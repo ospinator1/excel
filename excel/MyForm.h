@@ -35,7 +35,7 @@ private:
     int triangleWidth;
     int triangleHeight;
     int boardOffsetX;
-    int boardOffsetY;
+    int x;
 public:
     BackgammonForm()
     {
@@ -50,7 +50,6 @@ public:
         triangleWidth = boardWidth / 12;
         triangleHeight = boardHeight / 2;
         boardOffsetX = (this->ClientSize.Width - boardWidth) / 2;
-        boardOffsetY = 50;
         checkerPositions = gcnew List<Point>();
         isDraggingFlags = gcnew List<bool>();
         checkerColors = gcnew List<Color>();
