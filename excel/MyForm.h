@@ -1,6 +1,7 @@
 #pragma once
-
 #include <Windows.h>
+#include <gcroot.h>
+#include <iostream>
 
 using namespace System;
 using namespace System::Windows::Forms;
@@ -12,17 +13,20 @@ public ref class BackgammonForm : public Form
 {
 private:
     List<Point>^ checkerPositions;
-    List<bool>^ isDraggingFlags;
     List<Color>^ checkerColors;
+    List<int>^ checkerPoints; // Текущий пункт для каждой шашки
     int checkerRadius;
-    int draggedCheckerIndex;
+
     Random^ random;
 
     // Game state
-    int currentPlayer; // 1 or 2
+    int currentPlayer;
     int player1Dice1, player1Dice2;
     int player2Dice1, player2Dice2;
-    int totalMoves;
+    List<int>^ availableMoves;
+    List<int>^ highlightedPoints;
+    int selectedCheckerIndex;
+    Point initialCheckerPosition; // Переменная для хранения начальной позиции шашки
 
     // UI elements
     Button^ rollDiceButton;
@@ -35,7 +39,11 @@ private:
     int triangleWidth;
     int triangleHeight;
     int boardOffsetX;
-    int x;
+
+    // Move-related variables
+    int moveCounter; // Счетчик перемещенных шашек
+    List<int>^ checkerMoveCount; // Счетчик перемещений для каждой шашки в данном ходе
+
 public:
     BackgammonForm()
     {
@@ -51,19 +59,28 @@ public:
         triangleHeight = boardHeight / 2;
         boardOffsetX = (this->ClientSize.Width - boardWidth) / 2;
         checkerPositions = gcnew List<Point>();
-        isDraggingFlags = gcnew List<bool>();
         checkerColors = gcnew List<Color>();
-
-        draggedCheckerIndex = -1;
+        checkerPoints = gcnew List<int>();
+        availableMoves = gcnew List<int>();
+        highlightedPoints = gcnew List<int>();
+        selectedCheckerIndex = -1;
         random = gcnew Random();
-
         currentPlayer = 1;
         player1Dice1 = player1Dice2 = 0;
         player2Dice1 = player2Dice2 = 0;
-        totalMoves = 0;
+        moveCounter = 0; // Инициализируем счётчик перемещенных шашек
+
+        // Инициализируем счетчик перемещений для каждой шашки
+        checkerMoveCount = gcnew List<int>();
 
         InitializeUI();
         InitializeCheckers();
+
+        // Каждая шашка изначально не перемещалась
+        for (int i = 0; i < checkerPositions->Count; i++)
+        {
+            checkerMoveCount->Add(0);
+        }
 
         this->MouseDown += gcnew MouseEventHandler(this, &BackgammonForm::Form_MouseDown);
         this->MouseMove += gcnew MouseEventHandler(this, &BackgammonForm::Form_MouseMove);
@@ -75,7 +92,7 @@ private:
     void InitializeUI()
     {
         rollDiceButton = gcnew Button();
-        rollDiceButton->Text = "Roll Dice";
+        rollDiceButton->Text = "Бросить кубики";
         rollDiceButton->Size = System::Drawing::Size(120, 40);
         rollDiceButton->Location = System::Drawing::Point(
             this->ClientSize.Width / 2 - rollDiceButton->Width / 2,
@@ -86,7 +103,7 @@ private:
         this->Controls->Add(rollDiceButton);
 
         endTurnButtonP1 = gcnew Button();
-        endTurnButtonP1->Text = "End Turn";
+        endTurnButtonP1->Text = "Завершить ход";
         endTurnButtonP1->Size = System::Drawing::Size(100, 40);
         endTurnButtonP1->Location = System::Drawing::Point(50, this->ClientSize.Height - 60);
         endTurnButtonP1->BackColor = Color::FromArgb(220, 220, 220);
@@ -96,7 +113,7 @@ private:
         this->Controls->Add(endTurnButtonP1);
 
         endTurnButtonP2 = gcnew Button();
-        endTurnButtonP2->Text = "End Turn";
+        endTurnButtonP2->Text = "Завершить ход";
         endTurnButtonP2->Size = System::Drawing::Size(100, 40);
         endTurnButtonP2->Location = System::Drawing::Point(
             this->ClientSize.Width - 150,
@@ -107,93 +124,138 @@ private:
         endTurnButtonP2->Enabled = false;
         this->Controls->Add(endTurnButtonP2);
     }
-    // Добавьте эти константы в начало файла (или в настройки)
-    const int BOTTOM_OFFSET = -30;    // Смещение для нижних треугольников
-    const int TOP_OFFSET = 70;       // Смещение для верхних треугольников
-    const int CHECKER_SPACING = 20;  // Расстояние между шашками
 
     void AddCheckersForPoint(int pointIndex, int count, Color color)
     {
-        // Рассчитываем позицию X
-        int x = boardOffsetX + (pointIndex % 12) * triangleWidth * 2 + triangleWidth;
+        Point position = GetPointPosition(pointIndex);
+        int direction = (pointIndex < 12) ? -1 : 1; // Вверх для нижних, вниз для верхних
+        int spacing = 20; // Расстояние между шашками
 
-        // Корректировка X для нижних треугольников (1-12)
-        if (pointIndex < 12) {
-            x = boardOffsetX + (11 - pointIndex) * triangleWidth * 2 + triangleWidth;
+        // Подсчет уже существующих шашек на данной позиции
+        int existingCount = 0;
+        for (int i = 0; i < checkerPoints->Count; i++)
+        {
+            if (checkerPoints[i] == pointIndex)
+            {
+                existingCount++;
+            }
         }
 
-        // Вертикальные параметры
-        int baseY, direction;
-
-        if (pointIndex < 12) {
-            // Нижние треугольники - шашки идут ВВЕРХ от основания
-            baseY = boardHeight - BOTTOM_OFFSET;
-            direction = -1; // Отрицательное направление (вверх)
-        }
-        else {
-            // Верхние треугольники - шашки идут ВНИЗ от основания
-            baseY = TOP_OFFSET;
-            direction = 1; // Положительное направление (вниз)
-        }
-
-        // Добавляем шашки
-        for (int i = 0; i < count; i++) {
-            int y = baseY + (i * CHECKER_SPACING * direction);
-            checkerPositions->Add(Point(x, y));
-            isDraggingFlags->Add(false);
+        // Добавление новых шашек с учетом уже существующих
+        for (int i = 0; i < count; i++)
+        {
+            int y = position.Y + ((existingCount + i) * spacing * direction); // Увеличиваем Y в зависимости от количества уже существующих шашек
+            checkerPositions->Add(Point(position.X, y));
             checkerColors->Add(color);
+            checkerPoints->Add(pointIndex);
+            checkerMoveCount->Add(0); // Изначально шашка не перемещалась
         }
+    }
+
+    Point GetPointPosition(int pointIndex)
+    {
+        int x, y;
+
+        if (pointIndex < 12)
+        {
+            // Нижние треугольники (1-12)
+            x = boardOffsetX + (11 - pointIndex) * triangleWidth * 2 + triangleWidth;
+            y = boardHeight - 30;
+        }
+        else
+        {
+            // Верхние треугольники (13-24)
+            x = boardOffsetX + (pointIndex - 12) * triangleWidth * 2 + triangleWidth;
+            y = 70;
+        }
+
+        return Point(x, y);
     }
 
     void InitializeCheckers()
     {
         checkerPositions->Clear();
-        isDraggingFlags->Clear();
         checkerColors->Clear();
+        checkerPoints->Clear();
+        checkerMoveCount->Clear(); // Очищаем счетчики перемещений
 
-        // Player 1 (dark) checkers (черные шашки)
-        AddCheckersForPoint(0, 2, Color::FromArgb(50, 50, 50));   // Пункт 1 (низ)
-        AddCheckersForPoint(11, 5, Color::FromArgb(50, 50, 50));  // Пункт 12 (низ)
-        AddCheckersForPoint(16, 3, Color::FromArgb(50, 50, 50)); // Пункт 17 (верх)
-        AddCheckersForPoint(18, 5, Color::FromArgb(50, 50, 50));  // Пункт 19 (верх)
+        // Player 1 (dark) checkers
+        AddCheckersForPoint(0, 2, Color::FromArgb(50, 50, 50));   // Пункт 1
+        AddCheckersForPoint(11, 5, Color::FromArgb(50, 50, 50));  // Пункт 12
+        AddCheckersForPoint(16, 3, Color::FromArgb(50, 50, 50));  // Пункт 17
+        AddCheckersForPoint(18, 5, Color::FromArgb(50, 50, 50));  // Пункт 19
 
-        // Player 2 (light) checkers (белые шашки)
-        AddCheckersForPoint(5, 5, Color::FromArgb(240, 240, 240));  // Пункт 6 (низ)
-        AddCheckersForPoint(7, 3, Color::FromArgb(240, 240, 240));  // Пункт 8 (низ)
-        AddCheckersForPoint(12, 5, Color::FromArgb(240, 240, 240)); // Пункт 13 (верх)
-        AddCheckersForPoint(23, 2, Color::FromArgb(240, 240, 240)); // Пункт 24 (верх)
+        // Player 2 (light) checkers
+        AddCheckersForPoint(5, 5, Color::FromArgb(240, 240, 240));  // Пункт 6
+        AddCheckersForPoint(7, 3, Color::FromArgb(240, 240, 240));  // Пункт 8
+        AddCheckersForPoint(12, 5, Color::FromArgb(240, 240, 240)); // Пункт 13
+        AddCheckersForPoint(23, 2, Color::FromArgb(240, 240, 240)); // Пункт 24
     }
 
     void RollDiceButton_Click(Object^ sender, EventArgs^ e)
     {
+        if (moveCounter >= 2) // Проверка, можно ли бросить кубики
+        {
+            MessageBox::Show("Вы уже переместили две шашки. Завершите свой ход.", "Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Warning);
+            return;
+        }
+
+        availableMoves->Clear(); // Очистка доступных ходов перед броском кубиков
+
         if (currentPlayer == 1)
         {
             player1Dice1 = random->Next(1, 7);
             player1Dice2 = random->Next(1, 7);
-            totalMoves = player1Dice1 + player1Dice2;
+            if (player1Dice1 == player1Dice2) // Проверяем, выпал ли дубль
+            {
+                availableMoves->Add(player1Dice1);
+                availableMoves->Add(player1Dice2);
+                availableMoves->Add(player1Dice1);
+                availableMoves->Add(player1Dice2);
+            }
+            else
+            {
+                availableMoves->Add(player1Dice1);
+                availableMoves->Add(player1Dice2);
+            }
             endTurnButtonP1->Enabled = true;
-            rollDiceButton->Enabled = false;
         }
         else
         {
             player2Dice1 = random->Next(1, 7);
             player2Dice2 = random->Next(1, 7);
-            totalMoves = player2Dice1 + player2Dice2;
+            if (player2Dice1 == player2Dice2) // Проверяем, выпал ли дубль
+            {
+                availableMoves->Add(player2Dice1);
+                availableMoves->Add(player2Dice2);
+                availableMoves->Add(player2Dice1);
+                availableMoves->Add(player2Dice2);
+            }
+            else
+            {
+                availableMoves->Add(player2Dice1);
+                availableMoves->Add(player2Dice2);
+            }
             endTurnButtonP2->Enabled = true;
-            rollDiceButton->Enabled = false;
         }
 
-        this->Text = String::Format("Backgammon - Player {0}'s Turn | Moves: {1}",
-            currentPlayer, totalMoves);
+        this->Text = String::Format("Backgammon - Player {0}'s Turn | Moves: {1} and {2}",
+            currentPlayer, availableMoves[0], availableMoves[1]);
+
+        // Отображаем, что это дубль
+        if (availableMoves->Count > 2)
+        {
+            this->Text += " (Double!)";
+        }
+
+        rollDiceButton->Enabled = false; // Блокируем бросок кубиков
         this->Invalidate();
     }
 
     void EndTurnButtonP1_Click(Object^ sender, EventArgs^ e)
     {
         currentPlayer = 2;
-        totalMoves = 0;
-        endTurnButtonP1->Enabled = false;
-        rollDiceButton->Enabled = true;
+        ResetTurn();
         this->Text = "Backgammon - Player 2's Turn";
         this->Invalidate();
     }
@@ -201,11 +263,71 @@ private:
     void EndTurnButtonP2_Click(Object^ sender, EventArgs^ e)
     {
         currentPlayer = 1;
-        totalMoves = 0;
-        endTurnButtonP2->Enabled = false;
-        rollDiceButton->Enabled = true;
+        ResetTurn();
         this->Text = "Backgammon - Player 1's Turn";
         this->Invalidate();
+    }
+
+    void ResetTurn()
+    {
+        availableMoves->Clear();
+        highlightedPoints->Clear();
+        selectedCheckerIndex = -1;
+        endTurnButtonP1->Enabled = false;
+        endTurnButtonP2->Enabled = false;
+        rollDiceButton->Enabled = true;
+
+        // Сбрасываем счетчик перемещенных шашек и счетчики перемещений для шашек
+        moveCounter = 0;
+        for (int i = 0; i < checkerMoveCount->Count; i++)
+        {
+            checkerMoveCount[i] = 0; // Сбрасываем флаг перемещения каждой шашки
+        }
+    }
+
+    void CalculatePossibleMoves(int checkerIndex)
+    {
+        highlightedPoints->Clear();
+
+        int currentPoint = checkerPoints[checkerIndex];
+        bool isPlayer1 = (checkerColors[checkerIndex].R < 100);
+
+        for each(int move in availableMoves)
+        {
+            int targetPoint;
+            if (isPlayer1)
+            {
+                // Игрок 1 движется по возрастанию (1->24)
+                targetPoint = currentPoint + move;
+            }
+            else
+            {
+                // Игрок 2 движется по убыванию (24->1)
+                targetPoint = currentPoint - move;
+            }
+
+            // Проверяем, что пункт существует (0-23)
+            if (targetPoint >= 0 && targetPoint < 24)
+            {
+                // Проверяем, можно ли установить шашку на целевую позицию
+                int opponentCount = 0;
+                Color opponentColor = isPlayer1 ? Color::FromArgb(240, 240, 240) : Color::FromArgb(50, 50, 50);
+
+                for (int i = 0; i < checkerPoints->Count; i++)
+                {
+                    if (checkerPoints[i] == targetPoint && checkerColors[i] == opponentColor)
+                    {
+                        opponentCount++;
+                    }
+                }
+
+                // Добавляем подсветку, если на целевой позиции не более одной противника
+                if (opponentCount < 2)
+                {
+                    highlightedPoints->Add(targetPoint);
+                }
+            }
+        }
     }
 
     void Form_Paint(Object^ sender, PaintEventArgs^ e)
@@ -215,12 +337,20 @@ private:
         g->TextRenderingHint = System::Drawing::Text::TextRenderingHint::AntiAlias;
 
         DrawBoard(g);
+        DrawHomeArea(g); // Рисуем дома
 
+        // Рисуем подсвеченные пункты
+        for each(int point in highlightedPoints)
+        {
+            Point pos = GetPointPosition(point);
+            g->FillEllipse(Brushes::Yellow, pos.X - checkerRadius - 5, pos.Y - checkerRadius - 5,
+                checkerRadius * 2 + 10, checkerRadius * 2 + 10);
+        }
+
+        // Рисуем шашки
         for (int i = 0; i < checkerPositions->Count; i++)
         {
             Color color = checkerColors[i];
-            if (i == draggedCheckerIndex) color = Color::FromArgb(180, color);
-
             Brush^ brush = gcnew SolidBrush(color);
             g->FillEllipse(brush,
                 checkerPositions[i].X - checkerRadius,
@@ -236,29 +366,22 @@ private:
                 checkerRadius * 2);
         }
 
-        if (player1Dice1 > 0 && player1Dice2 > 0 && currentPlayer == 1)
+        // Рисуем кубики
+        if (currentPlayer == 1)
         {
             DrawDice(g, 100, 100, player1Dice1, Color::Black);
             DrawDice(g, 180, 100, player1Dice2, Color::Black);
-
-            Drawing::Font^ playerFont = gcnew Drawing::Font("Arial", 14, FontStyle::Bold);
-            g->DrawString("Player 1", playerFont, Brushes::Black, PointF(120, 60));
         }
-
-        if (player2Dice1 > 0 && player2Dice2 > 0 && currentPlayer == 2)
+        else
         {
             DrawDice(g, this->ClientSize.Width - 220, 100, player2Dice1, Color::Red);
             DrawDice(g, this->ClientSize.Width - 140, 100, player2Dice2, Color::Red);
-
-            Drawing::Font^ playerFont = gcnew Drawing::Font("Arial", 14, FontStyle::Bold);
-            g->DrawString("Player 2", playerFont, Brushes::Black,
-                PointF(this->ClientSize.Width - 180, 60));
         }
 
-        Drawing::Font^ turnFont = gcnew Drawing::Font("Arial", 16, FontStyle::Bold);
-        String^ turnText = String::Format("Current Turn: Player {0}", currentPlayer);
-        g->DrawString(turnText, turnFont, Brushes::DarkBlue,
-            PointF(this->ClientSize.Width / 2 - 100, 10));
+        // Отображаем текущего игрока
+        String^ turnText = String::Format("Текущий ход: Игрок {0}", currentPlayer);
+        g->DrawString(turnText, gcnew Drawing::Font("Arial", 16, FontStyle::Bold),
+            Brushes::DarkBlue, PointF(this->ClientSize.Width / 2 - 100, 10));
     }
 
     void DrawBoard(Graphics^ g)
@@ -285,95 +408,86 @@ private:
         // Рисуем номера пунктов
         DrawPointNumbers(g);
     }
+
+    void DrawHomeArea(Graphics^ g)
+    {
+        // Рисуем дом игрока 1 (нижняя часть)
+        Color homeColor1 = Color::FromArgb(200, 220, 255);
+        g->FillRectangle(gcnew SolidBrush(homeColor1), boardOffsetX, boardHeight - 30, boardWidth / 2, 30);
+        g->DrawString("Дом Игрока 1", gcnew Font("Arial", 12), Brushes::Black, boardOffsetX + 10, boardHeight - 25);
+
+        // Рисуем дом игрока 2 (верхняя часть)
+        Color homeColor2 = Color::FromArgb(255, 220, 220);
+        g->FillRectangle(gcnew SolidBrush(homeColor2), boardOffsetX + boardWidth / 2, 50, boardWidth / 2, 30);
+        g->DrawString("Дом Игрока 2", gcnew Font("Arial", 12), Brushes::Black,
+            boardOffsetX + boardWidth / 2 + 10, 55);
+    }
+
     void DrawPoint(Graphics^ g, int pointIndex, bool isTop)
     {
-        // Сдвиг для правой части (7-12 и 13-18)
-        int rightShift = triangleWidth/9; // Можно регулировать (например, *1.5 или *2)
-
-        int x;
-        if (pointIndex < 6) {
-            // Треугольники 1-6 (верх) и 19-24 (низ) - без сдвига
-            x = boardOffsetX + (pointIndex * triangleWidth * 2) + triangleWidth;
-        }
-        else {
-            // Треугольники 7-12 (верх) и 13-18 (низ) - сдвиг вправо
-            x = boardOffsetX + rightShift + (pointIndex * triangleWidth * 2) + triangleWidth;
-        }
-
+        int x = boardOffsetX + (pointIndex % 12) * triangleWidth * 2 + triangleWidth;
         int y = isTop ? 50 : 50 + triangleHeight;
 
-        // Определяем вершины треугольника
         array<Point>^ triangle = gcnew array<Point>(3);
         if (isTop)
         {
-            // Верхние треугольники (остриём вниз)
             triangle[0] = Point(x - triangleWidth, y);
             triangle[1] = Point(x, y + triangleHeight);
             triangle[2] = Point(x + triangleWidth, y);
         }
         else
         {
-            // Нижние треугольники (остриём вверх)
             triangle[0] = Point(x - triangleWidth, y + triangleHeight);
             triangle[1] = Point(x, y);
             triangle[2] = Point(x + triangleWidth, y + triangleHeight);
         }
 
-        // Чередуем цвета
-        Color darkColor = Color::FromArgb(139, 69, 19); // Тёмно-коричневый
-        Color lightColor = Color::FromArgb(245, 222, 179); // Светло-бежевый
+        Color darkColor = Color::FromArgb(139, 69, 19);
+        Color lightColor = Color::FromArgb(245, 222, 179);
 
         Brush^ pointBrush = ((pointIndex % 2 == 0) ^ isTop) ? gcnew SolidBrush(darkColor) : gcnew SolidBrush(lightColor);
         g->FillPolygon(pointBrush, triangle);
         g->DrawPolygon(Pens::Black, triangle);
     }
+
     void DrawPointNumbers(Graphics^ g)
     {
         Drawing::Font^ font = gcnew Drawing::Font("Arial", 10, FontStyle::Bold);
         Brush^ brush = Brushes::Black;
 
-        // Верхние треугольники (13-24 слева направо)
         for (int i = 0; i < 12; i++)
         {
-            int number = 13 + i;  // Начинаем с 13 и идем до 24
-            int x = boardOffsetX + (i * triangleWidth * 2) + triangleWidth - 10;
-            int y = 50 - 25; // Выше верхних треугольников
-            g->DrawString(number.ToString(), font, brush, PointF(x, y));
-        }
+            // Верхние треугольники (13-24)
+            int upperNumber = 13 + i;
+            int upperX = boardOffsetX + (i * triangleWidth * 2) + triangleWidth - 10;
+            g->DrawString(upperNumber.ToString(), font, brush, PointF(upperX, 50 - 25));
 
-        // Нижние треугольники (1-12 справа налево)
-        for (int i = 0; i < 12; i++)
-        {
-            int number = 12 - i; // Изменение порядка
-            int x = boardOffsetX + (i * triangleWidth * 2) + triangleWidth - 10;
-            int y = 50 + boardHeight + 10; // Ниже нижних треугольников
-            g->DrawString(number.ToString(), font, brush, PointF(x, y));
+            // Нижние треугольники (1-12)
+            int lowerNumber = 12 - i;
+            int lowerX = boardOffsetX + (i * triangleWidth * 2) + triangleWidth - 10;
+            g->DrawString(lowerNumber.ToString(), font, brush, PointF(lowerX, 50 + boardHeight + 10));
         }
     }
 
     void DrawDice(Graphics^ g, int x, int y, int value, Color dotColor)
     {
-        g->FillRectangle(gcnew SolidBrush(Color::FromArgb(30, 0, 0, 0)), x + 3, y + 3, 60, 60);
-        Drawing::Rectangle diceRect(x, y, 60, 60);
-        g->FillRectangle(Brushes::White, diceRect);
-        g->DrawRectangle(Pens::Black, diceRect);
-
+        g->FillRectangle(Brushes::White, x, y, 60, 60);
+        g->DrawRectangle(Pens::Black, x, y, 60, 60);
         Brush^ dotBrush = gcnew SolidBrush(dotColor);
         int dotSize = 10;
         int dotOffset = 15;
-        int center = 30;
 
         switch (value)
         {
         case 1:
-            g->FillEllipse(dotBrush, x + center - dotSize / 2, y + center - dotSize / 2, dotSize, dotSize);
+            g->FillEllipse(dotBrush, x + 30 - dotSize / 2, y + 30 - dotSize / 2, dotSize, dotSize);
             break;
         case 2:
             g->FillEllipse(dotBrush, x + dotOffset, y + dotOffset, dotSize, dotSize);
             g->FillEllipse(dotBrush, x + 60 - dotOffset - dotSize, y + 60 - dotOffset - dotSize, dotSize, dotSize);
             break;
         case 3:
-            g->FillEllipse(dotBrush, x + center - dotSize / 2, y + center - dotSize / 2, dotSize, dotSize);
+            g->FillEllipse(dotBrush, x + 30 - dotSize / 2, y + 30 - dotSize / 2, dotSize, dotSize);
             g->FillEllipse(dotBrush, x + dotOffset, y + dotOffset, dotSize, dotSize);
             g->FillEllipse(dotBrush, x + 60 - dotOffset - dotSize, y + 60 - dotOffset - dotSize, dotSize, dotSize);
             break;
@@ -384,7 +498,7 @@ private:
             g->FillEllipse(dotBrush, x + 60 - dotOffset - dotSize, y + 60 - dotOffset - dotSize, dotSize, dotSize);
             break;
         case 5:
-            g->FillEllipse(dotBrush, x + center - dotSize / 2, y + center - dotSize / 2, dotSize, dotSize);
+            g->FillEllipse(dotBrush, x + 30 - dotSize / 2, y + 30 - dotSize / 2, dotSize, dotSize);
             g->FillEllipse(dotBrush, x + dotOffset, y + dotOffset, dotSize, dotSize);
             g->FillEllipse(dotBrush, x + 60 - dotOffset - dotSize, y + dotOffset, dotSize, dotSize);
             g->FillEllipse(dotBrush, x + dotOffset, y + 60 - dotOffset - dotSize, dotSize, dotSize);
@@ -392,10 +506,10 @@ private:
             break;
         case 6:
             g->FillEllipse(dotBrush, x + dotOffset, y + 10, dotSize, dotSize);
-            g->FillEllipse(dotBrush, x + dotOffset, y + center - dotSize / 2, dotSize, dotSize);
+            g->FillEllipse(dotBrush, x + dotOffset, y + 30 - dotSize / 2, dotSize, dotSize);
             g->FillEllipse(dotBrush, x + dotOffset, y + 50, dotSize, dotSize);
             g->FillEllipse(dotBrush, x + 60 - dotOffset - dotSize, y + 10, dotSize, dotSize);
-            g->FillEllipse(dotBrush, x + 60 - dotOffset - dotSize, y + center - dotSize / 2, dotSize, dotSize);
+            g->FillEllipse(dotBrush, x + 60 - dotOffset - dotSize, y + 30 - dotSize / 2, dotSize, dotSize);
             g->FillEllipse(dotBrush, x + 60 - dotOffset - dotSize, y + 50, dotSize, dotSize);
             break;
         }
@@ -403,20 +517,21 @@ private:
 
     void Form_MouseDown(Object^ sender, MouseEventArgs^ e)
     {
-        if (totalMoves <= 0) return;
+        if (availableMoves->Count == 0) return;
 
         for (int i = 0; i < checkerPositions->Count; i++)
         {
-            if ((currentPlayer == 1 && checkerColors[i].R < 100) ||
-                (currentPlayer == 2 && checkerColors[i].R > 200))
+            bool isPlayer1 = (checkerColors[i].R < 100);
+            if ((currentPlayer == 1 && isPlayer1) || (currentPlayer == 2 && !isPlayer1))
             {
                 int dx = e->X - checkerPositions[i].X;
                 int dy = e->Y - checkerPositions[i].Y;
                 if (dx * dx + dy * dy <= checkerRadius * checkerRadius)
                 {
-                    isDraggingFlags[i] = true;
-                    draggedCheckerIndex = i;
-                    this->Cursor = Cursors::Hand;
+                    selectedCheckerIndex = i;
+                    initialCheckerPosition = checkerPositions[i]; // Сохраняем начальную позицию
+                    CalculatePossibleMoves(i);
+                    this->Invalidate();
                     break;
                 }
             }
@@ -425,27 +540,197 @@ private:
 
     void Form_MouseMove(Object^ sender, MouseEventArgs^ e)
     {
-        if (draggedCheckerIndex != -1 && isDraggingFlags[draggedCheckerIndex])
+        // Проверяем, выбрана ли шашка
+        if (selectedCheckerIndex != -1)
         {
-            checkerPositions[draggedCheckerIndex] = e->Location;
+            // Получаем текущую позицию шашки
+            Point currentPos = checkerPositions[selectedCheckerIndex];
+
+            // Перемещаем шашку в положение курсора мыши с некоторыми ограничениями
+            currentPos.X = e->X - (checkerRadius); // Смещаем для центрирования
+            currentPos.Y = e->Y - (checkerRadius); // Смещаем для центрирования
+
+            // Обновляем позицию шашки
+            checkerPositions[selectedCheckerIndex] = currentPos;
+
+            // Перерисовываем форму, чтобы отобразить изменения
             this->Invalidate();
         }
     }
 
     void Form_MouseUp(Object^ sender, MouseEventArgs^ e)
     {
-        if (draggedCheckerIndex != -1 && isDraggingFlags[draggedCheckerIndex])
+        if (e->Button == System::Windows::Forms::MouseButtons::Right) // Проверяем, правая кнопка мыши
         {
-            isDraggingFlags[draggedCheckerIndex] = false;
-            if (totalMoves > 0)
+            // Возвращаем шашку на начальную позицию
+            if (selectedCheckerIndex != -1)
             {
-                totalMoves--;
-                this->Text = String::Format("Backgammon - Player {0}'s Turn | Moves: {1}",
-                    currentPlayer, totalMoves);
+                checkerPositions[selectedCheckerIndex] = initialCheckerPosition; // Возвращаем на исходное место
+                selectedCheckerIndex = -1; // Сбрасываем выбранную шашку
+                this->Invalidate(); // Перерисовываем форму
             }
-            draggedCheckerIndex = -1;
-            this->Cursor = Cursors::Default;
+            return; // Выходим, чтобы не выполнять дальнейших действий
+        }
+
+        if (selectedCheckerIndex != -1 && highlightedPoints->Count > 0)
+        {
+            // Проверяем, куда переместили шашку
+            for each(int targetPoint in highlightedPoints)
+            {
+                Point targetPos = GetPointPosition(targetPoint);
+                int dx = e->X - targetPos.X;
+                int dy = e->Y - targetPos.Y;
+
+                if (dx * dx + dy * dy <= checkerRadius * checkerRadius * 4)
+                {
+                    // Вычисляем длину хода
+                    int currentPoint = checkerPoints[selectedCheckerIndex];
+                    int moveLength = Math::Abs(targetPoint - currentPoint);
+
+                    // Проверяем, что такой ход допустим
+                    if (availableMoves->Contains(moveLength))
+                    {
+                        // Подсчитываем количество шашек на целевой позиции
+                        int opponentCount = 0;
+                        Color opponentColor = (checkerColors[selectedCheckerIndex].R < 100) ? Color::FromArgb(240, 240, 240) : Color::FromArgb(50, 50, 50);
+
+                        // Считаем количество шашек противника на целевой позиции
+                        for (int i = 0; i < checkerPoints->Count; i++)
+                        {
+                            if (checkerPoints[i] == targetPoint && checkerColors[i] == opponentColor)
+                            {
+                                opponentCount++;
+                            }
+                        }
+
+                        // Проверяем, что на целевой позиции можно установить шашку
+                        if (opponentCount < 2) // Если 0 или 1 противник, то можно ставить
+                        {
+                            // Обновляем состояние шашки
+                            checkerPositions[selectedCheckerIndex] = targetPos;
+                            checkerPoints[selectedCheckerIndex] = targetPoint;
+
+                            // Увеличиваем счетчик перемещения для данной шашки
+                            checkerMoveCount[selectedCheckerIndex]++;
+                            moveCounter++; // Увеличиваем счетчик перемещенных шашек
+
+                            // Удаляем использованный ход
+                            availableMoves->Remove(moveLength);
+
+                            // Проверяем, готовы ли шашки к выбрасыванию
+                            if (CanExitAllCheckers())
+                            {
+                                // Игрок готов начать выбрасывать шашки
+                                this->Text = String::Format("Игрок {0} может выбрасывать шашки. Нажмите 'Бросить кубики' для броска.", currentPlayer);
+                            }
+
+                            // Проверяем, если достигнуто максимальное количество перемещений
+                            if (moveCounter >= 2)
+                            {
+                                // Блокируем возможность последующих ходов
+                                rollDiceButton->Enabled = false;
+                                this->Text = String::Format("Backgammon - Player {0}'s Turn | Все ходы выполнены.", currentPlayer);
+                            }
+
+                            break;
+                        }
+                    }
+                }
+            }
+
+            selectedCheckerIndex = -1;
+            highlightedPoints->Clear();
             this->Invalidate();
         }
+    }
+
+    bool CanExitAllCheckers()
+    {
+        for (int i = 0; i < checkerPoints->Count; i++)
+        {
+            if (checkerColors[i] == (currentPlayer == 1 ? Color::FromArgb(50, 50, 50) : Color::FromArgb(240, 240, 240)))
+            {
+                if (checkerPoints[i] >= 0 && checkerPoints[i] <= 5) // Проверяем, находятся ли шашки в своем доме
+                    return false;
+            }
+        }
+        return true; // Все шашки в доме
+    }
+
+    void RemoveCheckersFromBoard()
+    {
+        // Удаляем шашки с доски, которые находятся в доме и соответствуют выпавшим значениям
+        List<int>^ outgoingCheckers = gcnew List<int>();
+
+        if (currentPlayer == 1)
+        {
+            // Удаление шашек для игрока 1
+            if (checkerPoints->Contains(player1Dice1 - 1)) // Если выпало значение первого кубика
+            {
+                for (int i = 0; i < checkerPoints->Count; i++)
+                {
+                    if (checkerPoints[i] == player1Dice1 - 1 && checkerColors[i] == Color::FromArgb(50, 50, 50))
+                    {
+                        outgoingCheckers->Add(i);
+                    }
+                }
+            }
+            if (checkerPoints->Contains(player1Dice2 - 1)) // Если выпало значение второго кубика
+            {
+                for (int i = 0; i < checkerPoints->Count; i++)
+                {
+                    if (checkerPoints[i] == player1Dice2 - 1 && checkerColors[i] == Color::FromArgb(50, 50, 50))
+                    {
+                        outgoingCheckers->Add(i);
+                    }
+                }
+            }
+        }
+        else
+        {
+            // Удаление шашек для игрока 2
+            if (checkerPoints->Contains(24 - player2Dice1)) // Если выпало значение первого кубика
+            {
+                for (int i = 0; i < checkerPoints->Count; i++)
+                {
+                    if (checkerPoints[i] == 24 - player2Dice1 && checkerColors[i] == Color::FromArgb(240, 240, 240))
+                    {
+                        outgoingCheckers->Add(i);
+                    }
+                }
+            }
+            if (checkerPoints->Contains(24 - player2Dice2)) // Если выпало значение второго кубика
+            {
+                for (int i = 0; i < checkerPoints->Count; i++)
+                {
+                    if (checkerPoints[i] == 24 - player2Dice2 && checkerColors[i] == Color::FromArgb(240, 240, 240))
+                    {
+                        outgoingCheckers->Add(i);
+                    }
+                }
+            }
+        }
+
+        // Удаляем найденные шашки из списка
+        for each(int index in outgoingCheckers)
+        {
+            checkerPositions->RemoveAt(index);
+            checkerColors->RemoveAt(index);
+            checkerPoints->RemoveAt(index);
+        }
+    }
+
+    // После завершения хода игрока, добавим вызов выполнимой функции для выбрасывания шашек
+    void CompleteTurn()
+    {
+        if (CanExitAllCheckers())
+        {
+            MessageBox::Show("Игрок может начать выбрасывать шашки!", "Информация", MessageBoxButtons::OK, MessageBoxIcon::Information);
+            // Игрок выбрасывает шашки
+            RemoveCheckersFromBoard();
+        }
+
+        currentPlayer = (currentPlayer == 1) ? 2 : 1; // Передача хода
+        ResetTurn(); // Сброс состояния хода
     }
 };
