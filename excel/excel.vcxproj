@@ -79,7 +79,7 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
     </ClCompile>
     <Link>
       <AdditionalDependencies />
@@ -114,7 +114,7 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
     </ClCompile>
     <Link>
       <AdditionalDependencies />
@@ -141,6 +141,7 @@
     <Image Include="..\..\2025-04-09_12-22-21.png" />
     <Image Include="..\..\2025-04-19_09-58-33.png" />
     <Image Include="..\..\2025-04-20_11-29-22.png" />
+    <Image Include="..\..\2025-04-27_10-32-40.png" />
     <Image Include="..\..\photo_2025-04-03_19-34-48.jpg" />
     <Image Include="скриншоты работы\2025-04-05_11-07-15.png" />
   </ItemGroup>
