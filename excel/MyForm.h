@@ -1,4 +1,4 @@
-#pragma once
+п»ї#pragma once
 #include <Windows.h>
 #include <gcroot.h>
 #include <iostream>
@@ -18,17 +18,17 @@ private:
 
     GameRules()
     {
-        rulesText = "Правила игры в Нарды:\n\n";
-        rulesText += "Цель игры: Переместить все свои шашки в свой дом и затем 'снять' их с доски.\n\n";
-        rulesText += "Начальная расстановка: Каждая сторона имеет 15 шашек. Игрок 1 (черные) начинает с 2 шашек на 24-м поле, 5 на 13-м, 3 на 8-м и 5 на 6-м. Игрок 2 (белые) начинает с 2 шашек на 1-м поле, 5 на 12-м, 3 на 17-м и 5 на 19-м.\n\n";
-        rulesText += "Ход: Игроки по очереди бросают два кубика и перемещают шашки на количество полей, выпавшее на каждом кубике. Можно использовать оба значения для одной шашки или переместить две разные шашки.\n\n";
-        rulesText += "Дубль: Если на кубиках выпадает одинаковое число (дубль), игрок может сделать четыре хода на это число.\n\n";
-        rulesText += "Занятое поле: Шашку можно переместить на поле, если на нем нет шашек противника, или есть только одна шашка противника (блокада).\n\n";
-        rulesText += "Взятие: Если шашка попадает на поле, занятое одной шашкой противника, шашка противника 'бьется' и помещается на 'бар'.\n\n";
-        rulesText += "Бар: Шашки на баре должны быть введены обратно на доску с начальных полей противника (для игрока 1 - поля 1-6, для игрока 2 - поля 19-24). Для этого нужно выбросить число на кубике, соответствующее свободному полю в доме противника. Пока на баре есть шашки, игрок обязан ходить только ими.\n\n";
-        rulesText += "Дом: Дом игрока 1 - поля 1-6, дом игрока 2 - поля 19-24.\n\n";
-        rulesText += "Снятие шашек: Когда все шашки игрока находятся в его доме, он может начать 'снимать' их с доски. Для этого нужно выбросить на кубике число, равное расстоянию от шашки до края доски. Если выпавшее число больше необходимого, можно снять шашку с самого дальнего поля, на котором есть шашка.\n\n";
-        rulesText += "Победа: Побеждает игрок, который первым снимет все свои шашки с доски.";
+        rulesText = "РџСЂР°РІРёР»Р° РёРіСЂС‹ РІ РќР°СЂРґС‹:\n\n";
+        rulesText += "Р¦РµР»СЊ РёРіСЂС‹: РџРµСЂРµРјРµСЃС‚РёС‚СЊ РІСЃРµ СЃРІРѕРё С€Р°С€РєРё РІ СЃРІРѕР№ РґРѕРј Рё Р·Р°С‚РµРј 'СЃРЅСЏС‚СЊ' РёС… СЃ РґРѕСЃРєРё.\n\n";
+        rulesText += "РќР°С‡Р°Р»СЊРЅР°СЏ СЂР°СЃСЃС‚Р°РЅРѕРІРєР°: РљР°Р¶РґР°СЏ СЃС‚РѕСЂРѕРЅР° РёРјРµРµС‚ 15 С€Р°С€РµРє. РРіСЂРѕРє 1 (С‡РµСЂРЅС‹Рµ) РЅР°С‡РёРЅР°РµС‚ СЃ 2 С€Р°С€РµРє РЅР° 24-Рј РїРѕР»Рµ, 5 РЅР° 13-Рј, 3 РЅР° 8-Рј Рё 5 РЅР° 6-Рј. РРіСЂРѕРє 2 (Р±РµР»С‹Рµ) РЅР°С‡РёРЅР°РµС‚ СЃ 2 С€Р°С€РµРє РЅР° 1-Рј РїРѕР»Рµ, 5 РЅР° 12-Рј, 3 РЅР° 17-Рј Рё 5 РЅР° 19-Рј.\n\n";
+        rulesText += "РҐРѕРґ: РРіСЂРѕРєРё РїРѕ РѕС‡РµСЂРµРґРё Р±СЂРѕСЃР°СЋС‚ РґРІР° РєСѓР±РёРєР° Рё РїРµСЂРµРјРµС‰Р°СЋС‚ С€Р°С€РєРё РЅР° РєРѕР»РёС‡РµСЃС‚РІРѕ РїРѕР»РµР№, РІС‹РїР°РІС€РµРµ РЅР° РєР°Р¶РґРѕРј РєСѓР±РёРєРµ. РњРѕР¶РЅРѕ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ РѕР±Р° Р·РЅР°С‡РµРЅРёСЏ РґР»СЏ РѕРґРЅРѕР№ С€Р°С€РєРё РёР»Рё РїРµСЂРµРјРµСЃС‚РёС‚СЊ РґРІРµ СЂР°Р·РЅС‹Рµ С€Р°С€РєРё.\n\n";
+        rulesText += "Р”СѓР±Р»СЊ: Р•СЃР»Рё РЅР° РєСѓР±РёРєР°С… РІС‹РїР°РґР°РµС‚ РѕРґРёРЅР°РєРѕРІРѕРµ С‡РёСЃР»Рѕ (РґСѓР±Р»СЊ), РёРіСЂРѕРє РјРѕР¶РµС‚ СЃРґРµР»Р°С‚СЊ С‡РµС‚С‹СЂРµ С…РѕРґР° РЅР° СЌС‚Рѕ С‡РёСЃР»Рѕ.\n\n";
+        rulesText += "Р—Р°РЅСЏС‚РѕРµ РїРѕР»Рµ: РЁР°С€РєСѓ РјРѕР¶РЅРѕ РїРµСЂРµРјРµСЃС‚РёС‚СЊ РЅР° РїРѕР»Рµ, РµСЃР»Рё РЅР° РЅРµРј РЅРµС‚ С€Р°С€РµРє РїСЂРѕС‚РёРІРЅРёРєР°, РёР»Рё РµСЃС‚СЊ С‚РѕР»СЊРєРѕ РѕРґРЅР° С€Р°С€РєР° РїСЂРѕС‚РёРІРЅРёРєР° (Р±Р»РѕРєР°РґР°).\n\n";
+        rulesText += "Р’Р·СЏС‚РёРµ: Р•СЃР»Рё С€Р°С€РєР° РїРѕРїР°РґР°РµС‚ РЅР° РїРѕР»Рµ, Р·Р°РЅСЏС‚РѕРµ РѕРґРЅРѕР№ С€Р°С€РєРѕР№ РїСЂРѕС‚РёРІРЅРёРєР°, С€Р°С€РєР° РїСЂРѕС‚РёРІРЅРёРєР° 'Р±СЊРµС‚СЃСЏ' Рё РїРѕРјРµС‰Р°РµС‚СЃСЏ РЅР° 'Р±Р°СЂ'.\n\n";
+        rulesText += "Р‘Р°СЂ: РЁР°С€РєРё РЅР° Р±Р°СЂРµ РґРѕР»Р¶РЅС‹ Р±С‹С‚СЊ РІРІРµРґРµРЅС‹ РѕР±СЂР°С‚РЅРѕ РЅР° РґРѕСЃРєСѓ СЃ РЅР°С‡Р°Р»СЊРЅС‹С… РїРѕР»РµР№ РїСЂРѕС‚РёРІРЅРёРєР° (РґР»СЏ РёРіСЂРѕРєР° 1 - РїРѕР»СЏ 1-6, РґР»СЏ РёРіСЂРѕРєР° 2 - РїРѕР»СЏ 19-24). Р”Р»СЏ СЌС‚РѕРіРѕ РЅСѓР¶РЅРѕ РІС‹Р±СЂРѕСЃРёС‚СЊ С‡РёСЃР»Рѕ РЅР° РєСѓР±РёРєРµ, СЃРѕРѕС‚РІРµС‚СЃС‚РІСѓСЋС‰РµРµ СЃРІРѕР±РѕРґРЅРѕРјСѓ РїРѕР»СЋ РІ РґРѕРјРµ РїСЂРѕС‚РёРІРЅРёРєР°. РџРѕРєР° РЅР° Р±Р°СЂРµ РµСЃС‚СЊ С€Р°С€РєРё, РёРіСЂРѕРє РѕР±СЏР·Р°РЅ С…РѕРґРёС‚СЊ С‚РѕР»СЊРєРѕ РёРјРё.\n\n";
+        rulesText += "Р”РѕРј: Р”РѕРј РёРіСЂРѕРєР° 1 - РїРѕР»СЏ 1-6, РґРѕРј РёРіСЂРѕРєР° 2 - РїРѕР»СЏ 19-24.\n\n";
+        rulesText += "РЎРЅСЏС‚РёРµ С€Р°С€РµРє: РљРѕРіРґР° РІСЃРµ С€Р°С€РєРё РёРіСЂРѕРєР° РЅР°С…РѕРґСЏС‚СЃСЏ РІ РµРіРѕ РґРѕРјРµ, РѕРЅ РјРѕР¶РµС‚ РЅР°С‡Р°С‚СЊ 'СЃРЅРёРјР°С‚СЊ' РёС… СЃ РґРѕСЃРєРё. Р”Р»СЏ СЌС‚РѕРіРѕ РЅСѓР¶РЅРѕ РІС‹Р±СЂРѕСЃРёС‚СЊ РЅР° РєСѓР±РёРєРµ С‡РёСЃР»Рѕ, СЂР°РІРЅРѕРµ СЂР°СЃСЃС‚РѕСЏРЅРёСЋ РѕС‚ С€Р°С€РєРё РґРѕ РєСЂР°СЏ РґРѕСЃРєРё. Р•СЃР»Рё РІС‹РїР°РІС€РµРµ С‡РёСЃР»Рѕ Р±РѕР»СЊС€Рµ РЅРµРѕР±С…РѕРґРёРјРѕРіРѕ, РјРѕР¶РЅРѕ СЃРЅСЏС‚СЊ С€Р°С€РєСѓ СЃ СЃР°РјРѕРіРѕ РґР°Р»СЊРЅРµРіРѕ РїРѕР»СЏ, РЅР° РєРѕС‚РѕСЂРѕРј РµСЃС‚СЊ С€Р°С€РєР°.\n\n";
+        rulesText += "РџРѕР±РµРґР°: РџРѕР±РµР¶РґР°РµС‚ РёРіСЂРѕРє, РєРѕС‚РѕСЂС‹Р№ РїРµСЂРІС‹Рј СЃРЅРёРјРµС‚ РІСЃРµ СЃРІРѕРё С€Р°С€РєРё СЃ РґРѕСЃРєРё.";
     }
 
 public:
@@ -72,7 +72,6 @@ public:
     }
 };
 
-
 public ref class BackgammonForm : public Form
 {
 private:
@@ -92,7 +91,8 @@ private:
     int selectedCheckerIndex;
     Point initialCheckerPosition;
     bool hasMovedFromBar;
-    bool mustMoveFromBar;  // Новый флаг: обязан ходить из бара
+    bool mustMoveFromBar;  // РќРѕРІС‹Р№ С„Р»Р°Рі: РѕР±СЏР·Р°РЅ С…РѕРґРёС‚СЊ РёР· Р±Р°СЂР°
+    bool bearingOffPossible; // Р¤Р»Р°Рі: РІРѕР·РјРѕР¶РЅРѕ Р»Рё СЃРЅСЏС‚РёРµ С€Р°С€РµРє
 
     // UI elements
     Button^ rollDiceButton;
@@ -117,6 +117,12 @@ private:
     Point barPositionP1;
     Point barPositionP2;
 
+    // Bear off positions
+    Point bearOffPositionP1;
+    Point bearOffPositionP2;
+    List<int>^ bearOffCheckersP1;
+    List<int>^ bearOffCheckersP2;
+
     // Vertical offsets
     const int VERTICAL_OFFSET = 50;
     const int UI_VERTICAL_OFFSET = 100;
@@ -132,6 +138,18 @@ public:
     {
         Point get() { return barPositionP2; }
         void set(Point value) { barPositionP2 = value; }
+    }
+
+        property Point BearOffPositionP1
+    {
+        Point get() { return bearOffPositionP1; }
+        void set(Point value) { bearOffPositionP1 = value; }
+    }
+
+        property Point BearOffPositionP2
+    {
+        Point get() { return bearOffPositionP2; }
+        void set(Point value) { bearOffPositionP2 = value; }
     }
 
 public:
@@ -162,13 +180,19 @@ public:
         moveCounter = 0;
         hasMovedFromBar = false;
         mustMoveFromBar = false;
+        bearingOffPossible = false;
 
         checkerMoveCount = gcnew List<int>();
         barCheckersP1 = gcnew List<int>();
         barCheckersP2 = gcnew List<int>();
+        bearOffCheckersP1 = gcnew List<int>();
+        bearOffCheckersP2 = gcnew List<int>();
 
         this->BarPositionP1 = Point(boardOffsetX + boardWidth - checkerRadius, boardHeight / 2 + VERTICAL_OFFSET + UI_VERTICAL_OFFSET + 50);
         this->BarPositionP2 = Point(boardOffsetX + boardWidth + checkerRadius, boardHeight / 2 + VERTICAL_OFFSET + UI_VERTICAL_OFFSET + 50);
+
+        this->BearOffPositionP1 = Point(boardOffsetX + boardWidth * 2 + 100, boardHeight + VERTICAL_OFFSET + UI_VERTICAL_OFFSET - 50);
+        this->BearOffPositionP2 = Point(boardOffsetX + boardWidth * 2 + 100, 50 + VERTICAL_OFFSET + UI_VERTICAL_OFFSET + 50);
 
         InitializeUI();
         InitializeCheckers();
@@ -188,7 +212,7 @@ private:
     void InitializeUI()
     {
         rollDiceButton = gcnew Button();
-        rollDiceButton->Text = "Бросить кубики";
+        rollDiceButton->Text = "Р‘СЂРѕСЃРёС‚СЊ РєСѓР±РёРєРё";
         rollDiceButton->Size = System::Drawing::Size(120, 40);
         rollDiceButton->Location = System::Drawing::Point(
             this->ClientSize.Width / 2 - rollDiceButton->Width / 2 + 350,
@@ -199,7 +223,7 @@ private:
         this->Controls->Add(rollDiceButton);
 
         endTurnButtonP1 = gcnew Button();
-        endTurnButtonP1->Text = "Завершить ход";
+        endTurnButtonP1->Text = "Р—Р°РІРµСЂС€РёС‚СЊ С…РѕРґ";
         endTurnButtonP1->Size = System::Drawing::Size(100, 40);
         endTurnButtonP1->Location = System::Drawing::Point(
             this->ClientSize.Width - 1100,
@@ -211,7 +235,7 @@ private:
         this->Controls->Add(endTurnButtonP1);
 
         endTurnButtonP2 = gcnew Button();
-        endTurnButtonP2->Text = "Завершить ход";
+        endTurnButtonP2->Text = "Р—Р°РІРµСЂС€РёС‚СЊ С…РѕРґ";
         endTurnButtonP2->Size = System::Drawing::Size(100, 40);
         endTurnButtonP2->Location = System::Drawing::Point(
             this->ClientSize.Width + 500,
@@ -223,7 +247,7 @@ private:
         this->Controls->Add(endTurnButtonP2);
 
         showRulesButton = gcnew Button();
-        showRulesButton->Text = "Правила игры";
+        showRulesButton->Text = "РџСЂР°РІРёР»Р° РёРіСЂС‹";
         showRulesButton->Size = System::Drawing::Size(120, 40);
         showRulesButton->Location = System::Drawing::Point(
             10, 10);
@@ -235,25 +259,11 @@ private:
 
     void AddCheckersForPoint(int pointIndex, int count, CheckerFactory^ factory)
     {
-        Point position = GetPointPosition(pointIndex);
-        int direction = (pointIndex < 12) ? -1 : 1;
-        int spacing = 20;
-
-        int existingCount = 0;
-        for (int i = 0; i < checkerPoints->Count; i++)
-        {
-            if (checkerPoints[i] == pointIndex)
-            {
-                existingCount++;
-            }
-        }
-
         Color checkerColor = factory->CreateColor();
 
         for (int i = 0; i < count; i++)
         {
-            int y = position.Y + ((existingCount + i) * spacing * direction);
-            checkerPositions->Add(Point(position.X, y));
+            checkerPositions->Add(GetCheckerPositionOnPoint(pointIndex, GetPointCount(pointIndex, checkerColor)));
             checkerColors->Add(checkerColor);
             checkerPoints->Add(pointIndex);
             checkerMoveCount->Add(0);
@@ -278,6 +288,27 @@ private:
         return Point(x, y);
     }
 
+    Point GetCheckerPositionOnPoint(int pointIndex, int stackIndex)
+    {
+        Point basePosition = GetPointPosition(pointIndex);
+        int direction = (pointIndex < 12) ? -1 : 1;
+        int spacing = 20;
+        return Point(basePosition.X, basePosition.Y + (stackIndex * spacing * direction));
+    }
+
+    int GetPointCount(int pointIndex, Color color)
+    {
+        int count = 0;
+        for (int i = 0; i < checkerPoints->Count; i++)
+        {
+            if (checkerPoints[i] == pointIndex && checkerColors[i] == color)
+            {
+                count++;
+            }
+        }
+        return count;
+    }
+
     void InitializeCheckers()
     {
         checkerPositions->Clear();
@@ -286,27 +317,29 @@ private:
         checkerMoveCount->Clear();
         barCheckersP1->Clear();
         barCheckersP2->Clear();
+        bearOffCheckersP1->Clear();
+        bearOffCheckersP2->Clear();
 
         // Player 1 (dark) checkers using Abstract Factory
         CheckerFactory^ player1Factory = gcnew Player1CheckerFactory();
-        AddCheckersForPoint(0, 2, player1Factory);
-        AddCheckersForPoint(11, 5, player1Factory);
-        AddCheckersForPoint(16, 3, player1Factory);
-        AddCheckersForPoint(18, 5, player1Factory);
+        AddCheckersForPoint(23, 2, player1Factory);
+        AddCheckersForPoint(12, 5, player1Factory);
+        AddCheckersForPoint(7, 3, player1Factory);
+        AddCheckersForPoint(5, 5, player1Factory);
 
         // Player 2 (light) checkers using Abstract Factory
         CheckerFactory^ player2Factory = gcnew Player2CheckerFactory();
-        AddCheckersForPoint(5, 5, player2Factory);
-        AddCheckersForPoint(7, 3, player2Factory);
-        AddCheckersForPoint(12, 5, player2Factory);
-        AddCheckersForPoint(23, 2, player2Factory);
+        AddCheckersForPoint(0, 2, player2Factory);
+        AddCheckersForPoint(11, 5, player2Factory);
+        AddCheckersForPoint(16, 3, player2Factory);
+        AddCheckersForPoint(18, 5, player2Factory);
     }
 
     void RollDiceButton_Click(Object^ sender, EventArgs^ e)
     {
         if (moveCounter >= 2 && availableMoves->Count > 0)
         {
-            MessageBox::Show("Вы уже переместили две шашки. Завершите свой ход.", "Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Warning);
+            MessageBox::Show("Р’С‹ СѓР¶Рµ РїРµСЂРµРјРµСЃС‚РёР»Рё РґРІРµ С€Р°С€РєРё. Р—Р°РІРµСЂС€РёС‚Рµ СЃРІРѕР№ С…РѕРґ.", "РћС€РёР±РєР°", MessageBoxButtons::OK, MessageBoxIcon::Warning);
             return;
         }
 
@@ -349,21 +382,21 @@ private:
             endTurnButtonP2->Enabled = true;
         }
 
-        // Проверяем, есть ли шашки в баре у текущего игрока
+        // РџСЂРѕРІРµСЂСЏРµРј, РµСЃС‚СЊ Р»Рё С€Р°С€РєРё РІ Р±Р°СЂРµ Сѓ С‚РµРєСѓС‰РµРіРѕ РёРіСЂРѕРєР°
         mustMoveFromBar = (currentPlayer == 1 && barCheckersP1->Count > 0) ||
             (currentPlayer == 2 && barCheckersP2->Count > 0);
 
         if (mustMoveFromBar)
         {
-            MessageBox::Show("Вы должны сначала переместить шашку из бара!", "Внимание", MessageBoxButtons::OK, MessageBoxIcon::Information);
+            MessageBox::Show("Р’С‹ РґРѕР»Р¶РЅС‹ СЃРЅР°С‡Р°Р»Р° РїРµСЂРµРјРµСЃС‚РёС‚СЊ С€Р°С€РєСѓ РёР· Р±Р°СЂР°!", "Р’РЅРёРјР°РЅРёРµ", MessageBoxButtons::OK, MessageBoxIcon::Information);
         }
 
-        this->Text = String::Format("Backgammon - Ход игрока {0} | Ходы: {1} и {2}",
+        this->Text = String::Format("Backgammon - РҐРѕРґ РёРіСЂРѕРєР° {0} | РҐРѕРґС‹: {1} Рё {2}",
             currentPlayer, availableMoves[0], availableMoves[1]);
 
         if (availableMoves->Count > 2)
         {
-            this->Text += " (Дубль!)";
+            this->Text += " (Р”СѓР±Р»СЊ!)";
         }
 
         rollDiceButton->Enabled = false;
@@ -372,16 +405,18 @@ private:
 
     void EndTurnButtonP1_Click(Object^ sender, EventArgs^ e)
     {
-        // Проверяем, есть ли шашки в баре у следующего игрока
+        // РџСЂРѕРІРµСЂСЏРµРј, РµСЃС‚СЊ Р»Рё С€Р°С€РєРё РІ Р±Р°СЂРµ Сѓ СЃР»РµРґСѓСЋС‰РµРіРѕ РёРіСЂРѕРєР°
         bool nextPlayerHasBar = (barCheckersP2->Count > 0);
         ResetDiceAndEnableNextPlayer(2, nextPlayerHasBar);
+        CheckForAutomaticBearOff(1); // РџСЂРѕРІРµСЂРєР° РЅР° Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРѕРµ СЃРЅСЏС‚РёРµ С€Р°С€РµРє РґР»СЏ РёРіСЂРѕРєР° 1
     }
 
     void EndTurnButtonP2_Click(Object^ sender, EventArgs^ e)
     {
-        // Проверяем, есть ли шашки в баре у следующего игрока
+        // РџСЂРѕРІРµСЂСЏРµРј, РµСЃС‚СЊ Р»Рё С€Р°С€РєРё РІ Р±Р°СЂРµ Сѓ СЃР»РµРґСѓСЋС‰РµРіРѕ РёРіСЂРѕРєР°
         bool nextPlayerHasBar = (barCheckersP1->Count > 0);
         ResetDiceAndEnableNextPlayer(1, nextPlayerHasBar);
+        CheckForAutomaticBearOff(2); // РџСЂРѕРІРµСЂРєР° РЅР° Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРѕРµ СЃРЅСЏС‚РёРµ С€Р°С€РµРє РґР»СЏ РёРіСЂРѕРєР° 2
     }
 
     void ResetDiceAndEnableNextPlayer(int nextPlayer, bool nextPlayerHasBar)
@@ -392,7 +427,7 @@ private:
         endTurnButtonP1->Enabled = false;
         endTurnButtonP2->Enabled = false;
         hasMovedFromBar = false;
-        mustMoveFromBar = nextPlayerHasBar; // Устанавливаем флаг для следующего игрока
+        mustMoveFromBar = nextPlayerHasBar; // РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј С„Р»Р°Рі РґР»СЏ СЃР»РµРґСѓСЋС‰РµРіРѕ РёРіСЂРѕРєР°
 
         if (nextPlayer == 1) {
             player1Dice1 = player1Dice2 = 0;
@@ -410,14 +445,14 @@ private:
             checkerMoveCount[i] = 0;
         }
 
-        this->Text = String::Format("Backgammon - Ход игрока {0}", currentPlayer);
+        this->Text = String::Format("Backgammon - РҐРѕРґ РёРіСЂРѕРєР° {0}", currentPlayer);
         this->Invalidate();
     }
 
     void ShowRulesButton_Click(Object^ sender, EventArgs^ e)
     {
         GameRules^ rules = GameRules::GetInstance();
-        MessageBox::Show(rules->GetRules(), "Правила игры в Нарды", MessageBoxButtons::OK, MessageBoxIcon::Information);
+        MessageBox::Show(rules->GetRules(), "РџСЂР°РІРёР»Р° РёРіСЂС‹ РІ РќР°СЂРґС‹", MessageBoxButtons::OK, MessageBoxIcon::Information);
     }
 
     void CalculatePossibleMoves(int checkerIndex)
@@ -431,6 +466,8 @@ private:
 
         if (isInBar || mustMoveFromBar)
         {
+            if (!isInBar && mustMoveFromBar) return; // Р•СЃР»Рё С€Р°С€РєР° РЅРµ РІ Р±Р°СЂРµ, РЅРѕ РґРѕР»Р¶РЅР° Р±С‹С‚СЊ, РЅРµ РїРѕРєР°Р·С‹РІР°РµРј С…РѕРґС‹
+
             for each(int move in availableMoves)
             {
                 int targetPoint = isPlayer1 ? (24 - move) : (move - 1);
@@ -457,6 +494,10 @@ private:
         }
 
         int currentPoint = checkerPoints[checkerIndex];
+
+        // РџСЂРѕРІРµСЂСЏРµРј, РЅР°С…РѕРґСЏС‚СЃСЏ Р»Рё РІСЃРµ С€Р°С€РєРё РёРіСЂРѕРєР° РІ РґРѕРјРµ Рё РЅРµС‚ Р»Рё С€Р°С€РµРє РІ Р±Р°СЂРµ
+        bool allInHomeAndNoBar = CheckIfBearingOffPossible(currentPlayer);
+
         for each(int move in availableMoves)
         {
             int targetPoint;
@@ -469,9 +510,60 @@ private:
                 targetPoint = currentPoint - move;
             }
 
-            if (targetPoint >= 0 && targetPoint < 24)
+            if (allInHomeAndNoBar)
             {
-                CheckAndAddHighlightedPoints(targetPoint, isPlayer1);
+                // Р›РѕРіРёРєР° СЃРЅСЏС‚РёСЏ С€Р°С€РµРє
+                int distanceToBearOff = isPlayer1 ? (6 - currentPoint) : (currentPoint - 17);
+
+                if ((isPlayer1 && targetPoint >= 6) || (!isPlayer1 && targetPoint <= 17))
+                {
+                    // Р•СЃР»Рё С…РѕРґ РїРѕР·РІРѕР»СЏРµС‚ СЃРЅСЏС‚СЊ С€Р°С€РєСѓ РёР»Рё РїРµСЂРµС…РѕРґРёС‚ Р·Р° РїСЂРµРґРµР»С‹ РґРѕРјР°
+                    bool canBearOff = false;
+                    if (isPlayer1 && targetPoint >= 6) canBearOff = true;
+                    if (!isPlayer1 && targetPoint <= 17) canBearOff = true;
+
+                    if (canBearOff)
+                    {
+                        // РџСЂРѕРІРµСЂСЏРµРј, РЅРµС‚ Р»Рё С€Р°С€РµРє РґР°Р»СЊС€Рµ С‚РµРєСѓС‰РµР№ РІ РґРѕРјРµ, РµСЃР»Рё Р±СЂРѕСЃРѕРє Р±РѕР»СЊС€Рµ РЅРµРѕР±С…РѕРґРёРјРѕРіРѕ
+                        bool furtherCheckersExist = false;
+                        if ((isPlayer1 && move > distanceToBearOff) || (!isPlayer1 && move > Math::Abs(distanceToBearOff)))
+                        {
+                            for (int i = 0; i < checkerPoints->Count; i++)
+                            {
+                                bool isCurrentCheckerPlayer1 = (checkerColors[i].R < 100);
+                                if (isCurrentCheckerPlayer1 == isPlayer1 && checkerPoints[i] != -1 && checkerPoints[i] != -2)
+                                {
+                                    if (isPlayer1 && checkerPoints[i] > currentPoint && checkerPoints[i] <= 5)
+                                    {
+                                        furtherCheckersExist = true;
+                                        break;
+                                    }
+                                    if (!isPlayer1 && checkerPoints[i] < currentPoint && checkerPoints[i] >= 18)
+                                    {
+                                        furtherCheckersExist = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (!furtherCheckersExist)
+                        {
+                            highlightedPoints->Add(isPlayer1 ? 24 : -1); // РЈСЃР»РѕРІРЅС‹Рµ С‚РѕС‡РєРё РґР»СЏ СЃРЅСЏС‚РёСЏ С€Р°С€РµРє
+                        }
+                    }
+                }
+                else // РћР±С‹С‡РЅС‹Р№ С…РѕРґ РІ РґРѕРјРµ
+                {
+                    CheckAndAddHighlightedPoints(targetPoint, isPlayer1);
+                }
+            }
+            else // РћР±С‹С‡РЅС‹Р№ С…РѕРґ РЅР° РґРѕСЃРєРµ
+            {
+                if (targetPoint >= 0 && targetPoint < 24)
+                {
+                    CheckAndAddHighlightedPoints(targetPoint, isPlayer1);
+                }
             }
         }
     }
@@ -479,31 +571,21 @@ private:
     void CheckAndAddHighlightedPoints(int targetPoint, bool isPlayer1)
     {
         int opponentCount = 0;
-        int ownCount = 0;
         Color opponentColor = isPlayer1 ? Color::FromArgb(240, 240, 240) : Color::FromArgb(50, 50, 50);
-        Color ownColor = isPlayer1 ? Color::FromArgb(50, 50, 50) : Color::FromArgb(240, 240, 240);
 
         for (int i = 0; i < checkerPoints->Count; i++)
         {
-            if (checkerPoints[i] == targetPoint)
+            if (checkerPoints[i] == targetPoint && checkerColors[i] == opponentColor)
             {
-                if (checkerColors[i] == opponentColor)
-                {
-                    opponentCount++;
-                }
-                else if (checkerColors[i] == ownColor)
-                {
-                    ownCount++;
-                }
+                opponentCount++;
             }
         }
 
-        if (opponentCount < 2 && ownCount < 2)
+        if (opponentCount < 2) // Р Р°Р·СЂРµС€РµРЅРѕ С…РѕРґРёС‚СЊ РЅР° РїРѕР»Рµ СЃ 0 РёР»Рё 1 С€Р°С€РєРѕР№ РїСЂРѕС‚РёРІРЅРёРєР°
         {
             highlightedPoints->Add(targetPoint);
         }
     }
-
 
     void DrawBoard(Graphics^ g)
     {
@@ -520,7 +602,7 @@ private:
 
         DrawPointNumbers(g);
 
-        g->DrawString("БАР", gcnew Drawing::Font("Arial", 12, FontStyle::Bold),
+        g->DrawString("Р‘РђР ", gcnew Drawing::Font("Arial", 12, FontStyle::Bold),
             Brushes::Black, PointF(barPositionP1.X - 20, barPositionP1.Y - 50));
     }
 
@@ -623,7 +705,7 @@ private:
         g->FillRectangle(Brushes::SkyBlue, 0, 0, this->ClientSize.Width, this->ClientSize.Height);
         DrawBoard(g);
 
-        // Рисуем шашки в баре для игрока 1 (черные)
+        // Р РёСЃСѓРµРј С€Р°С€РєРё РІ Р±Р°СЂРµ РґР»СЏ РёРіСЂРѕРєР° 1 (С‡РµСЂРЅС‹Рµ)
         for (int i = 0; i < barCheckersP1->Count; i++)
         {
             g->FillEllipse(Brushes::Black, barPositionP1.X - checkerRadius,
@@ -634,7 +716,7 @@ private:
                 checkerRadius * 2, checkerRadius * 2);
         }
 
-        // Рисуем шашки в баре для игрока 2 (белые)
+        // Р РёСЃСѓРµРј С€Р°С€РєРё РІ Р±Р°СЂРµ РґР»СЏ РёРіСЂРѕРєР° 2 (Р±РµР»С‹Рµ)
         for (int i = 0; i < barCheckersP2->Count; i++)
         {
             g->FillEllipse(Brushes::White, barPositionP2.X - checkerRadius,
@@ -645,15 +727,32 @@ private:
                 checkerRadius * 2, checkerRadius * 2);
         }
 
-        // Подсвечиваем возможные ходы
+        // РџРѕРґСЃРІРµС‡РёРІР°РµРј РІРѕР·РјРѕР¶РЅС‹Рµ С…РѕРґС‹
         for each(int point in highlightedPoints)
         {
-            Point pos = GetPointPosition(point);
+            Point pos;
+            bool isBearOffHighlight = false;
+            if (point == 24) // РЈСЃР»РѕРІРЅР°СЏ С‚РѕС‡РєР° РґР»СЏ СЃРЅСЏС‚РёСЏ С€Р°С€РєРё РёРіСЂРѕРєРѕРј 1
+            {
+                pos = bearOffPositionP1;
+                isBearOffHighlight = true;
+            }
+            else if (point == -1) // РЈСЃР»РѕРІРЅР°СЏ С‚РѕС‡РєР° РґР»СЏ СЃРЅСЏС‚РёСЏ С€Р°С€РєРё РёРіСЂРѕРєРѕРј 2
+            {
+                pos = bearOffPositionP2;
+                isBearOffHighlight = true;
+            }
+            else
+            {
+                Color highlightColor = (currentPlayer == 1) ? Color::FromArgb(50, 50, 50) : Color::FromArgb(240, 240, 240); // Р¦РІРµС‚ С‚РµРєСѓС‰РµРіРѕ РёРіСЂРѕРєР°
+                pos = GetCheckerPositionOnPoint(point, GetPointCount(point, highlightColor));
+            }
+
             g->FillEllipse(Brushes::Yellow, pos.X - checkerRadius - 5, pos.Y - checkerRadius - 5,
                 checkerRadius * 2 + 10, checkerRadius * 2 + 10);
         }
 
-        // Рисуем все шашки на доске
+        // Р РёСЃСѓРµРј РІСЃРµ С€Р°С€РєРё РЅР° РґРѕСЃРєРµ
         for (int i = 0; i < checkerPositions->Count; i++)
         {
             if (barCheckersP1->Contains(i) || barCheckersP2->Contains(i))
@@ -675,7 +774,7 @@ private:
                 checkerRadius * 2);
         }
 
-        // Рисуем кубики для текущего игрока
+        // Р РёСЃСѓРµРј РєСѓР±РёРєРё РґР»СЏ С‚РµРєСѓС‰РµРіРѕ РёРіСЂРѕРєР°
         if (currentPlayer == 1)
         {
             DrawDice(g, 100, 100 + UI_VERTICAL_OFFSET, player1Dice1, Color::Black);
@@ -687,40 +786,128 @@ private:
             DrawDice(g, this->ClientSize.Width - 140, 100 + UI_VERTICAL_OFFSET, player2Dice2, Color::Red);
         }
 
-        // Отображаем информацию о текущем игроке
-        String^ turnText = String::Format("Текущий ход: Игрок {0}", currentPlayer);
+        // РћС‚РѕР±СЂР°Р¶Р°РµРј РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ С‚РµРєСѓС‰РµРј РёРіСЂРѕРєРµ
+        String^ turnText = String::Format("РўРµРєСѓС‰РёР№ С…РѕРґ: РРіСЂРѕРє {0}", currentPlayer);
         g->DrawString(turnText, gcnew Drawing::Font("Arial", 16, FontStyle::Bold),
             Brushes::DarkBlue, PointF(this->ClientSize.Width / 2 - 100, 10 + UI_VERTICAL_OFFSET));
 
-        // Отображаем количество шашек в баре
-        if (barCheckersP1->Count > 0)
-        {
-            g->DrawString(String::Format("Бар (Черные): {0}", barCheckersP1->Count),
-                gcnew Drawing::Font("Arial", 10, FontStyle::Bold),
-                Brushes::Black, PointF(barPositionP1.X - 50, barPositionP1.Y - 30));
-        }
-
-        if (barCheckersP2->Count > 0)
-        {
-            g->DrawString(String::Format("Бар (Белые): {0}", barCheckersP2->Count),
-                gcnew Drawing::Font("Arial", 10, FontStyle::Bold),
-                Brushes::Black, PointF(barPositionP2.X - 50, barPositionP2.Y - 30));
-        }
-
-        // Если игрок должен ходить из бара, выводим сообщение
+        // Р•СЃР»Рё РёРіСЂРѕРє РґРѕР»Р¶РµРЅ С…РѕРґРёС‚СЊ РёР· Р±Р°СЂР°, РІС‹РІРѕРґРёРј СЃРѕРѕР±С‰РµРЅРёРµ
         if (mustMoveFromBar)
         {
-            String^ message = "Вы должны ходить шашкой из бара!";
+            String^ message = "Р’С‹ РґРѕР»Р¶РЅС‹ С…РѕРґРёС‚СЊ С€Р°С€РєРѕР№ РёР· Р±Р°СЂР°!";
             g->DrawString(message, gcnew Drawing::Font("Arial", 12, FontStyle::Bold),
                 Brushes::Red, PointF(this->ClientSize.Width / 2 - 150, 50 + UI_VERTICAL_OFFSET));
         }
+    }
+
+   void CheckForAutomaticBearOff(int player)
+{
+    List<int>^ currentPlayerCheckers = gcnew List<int>();
+    // РћРїСЂРµРґРµР»СЏРµРј С†РІРµС‚ С€Р°С€РµРє РґР»СЏ РєР°Р¶РґРѕРіРѕ РёРіСЂРѕРєР°
+    Color playerColor = (player == 1) ? Color::FromArgb(50, 50, 50) : Color::FromArgb(240, 240, 240);
+
+    // РЎРѕР±РёСЂР°РµРј РёРЅРґРµРєСЃС‹ С€Р°С€РµРє С‚РµРєСѓС‰РµРіРѕ РёРіСЂРѕРєР°
+    for (int i = 0; i < checkerPoints->Count; i++)
+    {
+        if (checkerColors[i] == playerColor && checkerPoints[i] != -1 && checkerPoints[i] != -2)
+        {
+            currentPlayerCheckers->Add(i);
+        }
+    }
+
+    // РџСЂРѕРІРµСЂРєР°, РІСЃРµ Р»Рё С€Р°С€РєРё РЅР°С…РѕРґСЏС‚СЃСЏ РІ РґРѕРјРµ
+    bool allInHome = true;
+
+    for each (int checkerIndex in currentPlayerCheckers)
+    {
+        int point = checkerPoints[checkerIndex];
+
+        if (player == 1)
+        {
+            // Р”Р»СЏ РёРіСЂРѕРєР° 1: РґРѕРј вЂ” РїРѕР»СЏ 19-14 в†’ РЅРѕРјРµСЂР° 14вЂ“19
+            if (point < 14 || point > 19)
+            {
+                allInHome = false;
+                break;
+            }
+        }
+        else
+        {
+            // Р”Р»СЏ РёРіСЂРѕРєР° 2: РґРѕРј вЂ” РїРѕР»СЏ 1-6 в†’ РЅРѕРјРµСЂР° 0вЂ“5
+            if (point < 0 || point > 5)
+            {
+                allInHome = false;
+                break;
+            }
+        }
+    }
+
+    // РџСЂРѕРІРµСЂРєР°, С‡С‚Рѕ РІ Р±Р°СЂРµ РЅРµС‚ С€Р°С€РµРє СЌС‚РѕРіРѕ РёРіСЂРѕРєР°
+    bool noCheckersInBar = (player == 1 && barCheckersP1->Count == 0) ||
+                           (player == 2 && barCheckersP2->Count == 0);
+
+    // Р•СЃР»Рё РІСЃРµ РІ РґРѕРјРµ Рё РІ Р±Р°СЂРµ РЅРµС‚ С€Р°С€РµРє, РјРѕР¶РЅРѕ Р°РІС‚РѕРјР°С‚РѕРј СЃРЅРёРјР°С‚СЊ
+    if (allInHome && noCheckersInBar)
+    {
+        for each (int checkerIndex in currentPlayerCheckers)
+        {
+            // РћР±РЅРѕРІР»СЏРµРј РїРѕР·РёС†РёСЋ Рё СЃС‚Р°С‚СѓСЃ СЃРЅСЏС‚С‹С… С€Р°С€РµРє
+            if (player == 1)
+            {
+                bearOffCheckersP1->Add(checkerIndex);
+                checkerPoints[checkerIndex] = -2; // РЈСЃР»РѕРІРЅР°СЏ С‚РѕС‡РєР° РґР»СЏ СЃРЅСЏС‚С‹С… С€Р°С€РµРє
+                checkerPositions[checkerIndex] = Point(bearOffPositionP1.X, bearOffPositionP1.Y - checkerRadius + bearOffCheckersP1->Count * 30);
+            }
+            else
+            {
+                bearOffCheckersP2->Add(checkerIndex);
+                checkerPoints[checkerIndex] = -2; // РЈСЃР»РѕРІРЅР°СЏ С‚РѕС‡РєР° РґР»СЏ СЃРЅСЏС‚С‹С… С€Р°С€РµРє
+                checkerPositions[checkerIndex] = Point(bearOffPositionP2.X, bearOffPositionP2.Y - checkerRadius + bearOffCheckersP2->Count * 30);
+            }
+        }
+        CheckForWin(); // РџСЂРѕРІРµСЂРєР° РЅР° РїРѕР±РµРґСѓ
+    }
+}
+
+    void CheckForWin()
+    {
+        if (bearOffCheckersP1->Count == 15)
+        {
+            MessageBox::Show("РРіСЂРѕРє 1 РїРѕР±РµРґРёР»!", "РџРѕР±РµРґР°!", MessageBoxButtons::OK, MessageBoxIcon::Information);
+            ResetGame();
+        }
+        else if (bearOffCheckersP2->Count == 15)
+        {
+            MessageBox::Show("РРіСЂРѕРє 2 РїРѕР±РµРґРёР»!", "РџРѕР±РµРґР°!", MessageBoxButtons::OK, MessageBoxIcon::Information);
+            ResetGame();
+        }
+    }
+
+    void ResetGame()
+    {
+        InitializeCheckers();
+        availableMoves->Clear();
+        highlightedPoints->Clear();
+        selectedCheckerIndex = -1;
+        currentPlayer = 1;
+        player1Dice1 = player1Dice2 = 0;
+        player2Dice1 = player2Dice2 = 0;
+        moveCounter = 0;
+        hasMovedFromBar = false;
+        mustMoveFromBar = false;
+        bearingOffPossible = false;
+        endTurnButtonP1->Enabled = false;
+        endTurnButtonP2->Enabled = false;
+        rollDiceButton->Enabled = true;
+        this->Text = "Backgammon";
+        this->Invalidate();
     }
 
     void Form_MouseDown(Object^ sender, MouseEventArgs^ e)
     {
         if (availableMoves->Count == 0) return;
 
-        // Если игрок должен ходить из бара, разрешаем выбирать только шашки из бара
+        // Р•СЃР»Рё РёРіСЂРѕРє РґРѕР»Р¶РµРЅ С…РѕРґРёС‚СЊ РёР· Р±Р°СЂР°, СЂР°Р·СЂРµС€Р°РµРј РІС‹Р±РёСЂР°С‚СЊ С‚РѕР»СЊРєРѕ С€Р°С€РєРё РёР· Р±Р°СЂР°
         if (mustMoveFromBar)
         {
             for (int i = 0; i < checkerPositions->Count; i++)
@@ -729,9 +916,13 @@ private:
                 if ((currentPlayer == 1 && isPlayer1 && barCheckersP1->Contains(i)) ||
                     (currentPlayer == 2 && !isPlayer1 && barCheckersP2->Contains(i)))
                 {
-                    int dx = e->X - (barCheckersP1->Contains(i) ? barPositionP1.X : barPositionP2.X);
-                    int dy = e->Y - (barCheckersP1->Contains(i) ? barPositionP1.Y : barPositionP2.Y);
-                    if (dx * dx + dy * dy <= checkerRadius * checkerRadius * 4)
+                    int barIndex = isPlayer1 ? barCheckersP1->IndexOf(i) : barCheckersP2->IndexOf(i);
+                    Point barCheckerPos = isPlayer1 ? Point(barPositionP1.X, barPositionP1.Y - checkerRadius + barIndex * 30) : Point(barPositionP2.X, barPositionP2.Y - checkerRadius + barIndex * 30);
+
+                    int dx = e->X - barCheckerPos.X;
+                    int dy = e->Y - barCheckerPos.Y;
+
+                    if (dx * dx + dy * dy <= checkerRadius * checkerRadius)
                     {
                         selectedCheckerIndex = i;
                         initialCheckerPosition = checkerPositions[i];
@@ -744,14 +935,15 @@ private:
             return;
         }
 
-        // Обычный выбор шашки
+        // РћР±С‹С‡РЅС‹Р№ РІС‹Р±РѕСЂ С€Р°С€РєРё
         for (int i = 0; i < checkerPositions->Count; i++)
         {
             bool isPlayer1 = (checkerColors[i].R < 100);
             if ((currentPlayer == 1 && isPlayer1) || (currentPlayer == 2 && !isPlayer1))
             {
-                // Пропускаем шашки в баре, если не обязаны ходить из него
-                if ((isPlayer1 && barCheckersP1->Contains(i)) || (!isPlayer1 && barCheckersP2->Contains(i)))
+                // РџСЂРѕРїСѓСЃРєР°РµРј С€Р°С€РєРё РІ Р±Р°СЂРµ Рё СЃРЅСЏС‚С‹Рµ С€Р°С€РєРё
+                if ((isPlayer1 && barCheckersP1->Contains(i)) || (!isPlayer1 && barCheckersP2->Contains(i)) ||
+                    (isPlayer1 && bearOffCheckersP1->Contains(i)) || (!isPlayer1 && bearOffCheckersP2->Contains(i)))
                 {
                     continue;
                 }
@@ -775,8 +967,8 @@ private:
         if (selectedCheckerIndex != -1)
         {
             Point currentPos = checkerPositions[selectedCheckerIndex];
-            currentPos.X = e->X - (checkerRadius);
-            currentPos.Y = e->Y - (checkerRadius);
+            currentPos.X = e->X;
+            currentPos.Y = e->Y;
             checkerPositions[selectedCheckerIndex] = currentPos;
             this->Invalidate();
         }
@@ -790,6 +982,7 @@ private:
         {
             checkerPositions[selectedCheckerIndex] = initialCheckerPosition;
             selectedCheckerIndex = -1;
+            highlightedPoints->Clear();
             this->Invalidate();
             return;
         }
@@ -798,9 +991,33 @@ private:
         bool isInBar = (isPlayer1 && barCheckersP1->Contains(selectedCheckerIndex)) ||
             (!isPlayer1 && barCheckersP2->Contains(selectedCheckerIndex));
 
+        bool moved = false;
+
         for each(int targetPoint in highlightedPoints)
         {
-            Point targetPos = GetPointPosition(targetPoint);
+            Point targetPos;
+            bool isBearOffTarget = false;
+
+            if (targetPoint == 24 && isPlayer1)
+            {
+                targetPos = bearOffPositionP1;
+                isBearOffTarget = true;
+            }
+            else if (targetPoint == -1 && !isPlayer1)
+            {
+                targetPos = bearOffPositionP2;
+                isBearOffTarget = true;
+            }
+            else if (targetPoint >= 0 && targetPoint < 24)
+            {
+                Color targetColor = (currentPlayer == 1) ? Color::FromArgb(50, 50, 50) : Color::FromArgb(240, 240, 240);
+                targetPos = GetCheckerPositionOnPoint(targetPoint, GetPointCount(targetPoint, targetColor));
+            }
+            else
+            {
+                continue; // РќРµРєРѕСЂСЂРµРєС‚РЅР°СЏ С†РµР»СЊ
+            }
+
             int dx = e->X - targetPos.X;
             int dy = e->Y - targetPos.Y;
 
@@ -809,74 +1026,266 @@ private:
                 if (isInBar)
                 {
                     hasMovedFromBar = true;
-                    mustMoveFromBar = false; // Снимаем флаг обязательного хода из бара
-                    checkerPositions[selectedCheckerIndex] = targetPos;
-                    checkerPoints[selectedCheckerIndex] = targetPoint;
-
-                    if (isPlayer1)
-                        barCheckersP1->Remove(selectedCheckerIndex);
-                    else
-                        barCheckersP2->Remove(selectedCheckerIndex);
+                    mustMoveFromBar = false; // РЎРЅРёРјР°РµРј С„Р»Р°Рі РѕР±СЏР·Р°С‚РµР»СЊРЅРѕРіРѕ С…РѕРґР° РёР· Р±Р°СЂР°
 
                     int moveUsed = isPlayer1 ? (24 - targetPoint) : (targetPoint + 1);
-                    availableMoves->Remove(moveUsed);
-                    moveCounter++;
+                    bool validMoveFromBar = false;
+                    for each(int move in availableMoves)
+                    {
+                        if (move == moveUsed)
+                        {
+                            validMoveFromBar = true;
+                            availableMoves->Remove(move);
+                            break;
+                        }
+                    }
+
+                    if (validMoveFromBar)
+                    {
+                        checkerPositions[selectedCheckerIndex] = targetPos;
+                        checkerPoints[selectedCheckerIndex] = targetPoint;
+
+                        if (isPlayer1)
+                            barCheckersP1->Remove(selectedCheckerIndex);
+                        else
+                            barCheckersP2->Remove(selectedCheckerIndex);
+
+                        moveCounter++;
+                        moved = true;
+                    }
+                    else
+                    {
+                        // РќРµРїСЂР°РІРёР»СЊРЅС‹Р№ С…РѕРґ РёР· Р±Р°СЂР°, РІРѕР·РІСЂР°С‰Р°РµРј С€Р°С€РєСѓ РЅР° РјРµСЃС‚Рѕ
+                        checkerPositions[selectedCheckerIndex] = initialCheckerPosition;
+                    }
                 }
-                else
+                else if (isBearOffTarget)
+                {
+                    // Р›РѕРіРёРєР° СЃРЅСЏС‚РёСЏ С€Р°С€РєРё
+                    int currentPoint = checkerPoints[selectedCheckerIndex];
+                    int distanceToBearOff = isPlayer1 ? (6 - currentPoint) : (currentPoint - 17);
+
+                    // РџСЂРѕРІРµСЂСЏРµРј, СЃРѕРѕС‚РІРµС‚СЃС‚РІСѓРµС‚ Р»Рё Р±СЂРѕСЃРѕРє РєСѓР±РёРєР° СЂР°СЃСЃС‚РѕСЏРЅРёСЋ РґРѕ СЃРЅСЏС‚РёСЏ
+                    bool validBearOffMove = false;
+                    int usedMove = -1;
+
+                    // РџСЂРѕРІРµСЂСЏРµРј РїСЂСЏРјРѕРµ СЃРѕРѕС‚РІРµС‚СЃС‚РІРёРµ Р±СЂРѕСЃРєР°
+                    for each(int move in availableMoves)
+                    {
+                        if (move == distanceToBearOff)
+                        {
+                            validBearOffMove = true;
+                            usedMove = move;
+                            break;
+                        }
+                    }
+
+                    // Р•СЃР»Рё РїСЂСЏРјРѕРµ СЃРЅСЏС‚РёРµ РЅРµРІРѕР·РјРѕР¶РЅРѕ, РїСЂРѕРІРµСЂСЏРµРј РІРѕР·РјРѕР¶РЅРѕСЃС‚СЊ СЃРЅСЏС‚РёСЏ СЃ Р±РѕР»РµРµ РґР°Р»СЊРЅРёС… РїРѕР»РµР№
+                    if (!validBearOffMove)
+                    {
+                        int maxAvailableMove = 0;
+                        for each(int move in availableMoves)
+                        {
+                            if (move > maxAvailableMove)
+                            {
+                                maxAvailableMove = move;
+                            }
+                        }
+
+                        if ((isPlayer1 && maxAvailableMove > distanceToBearOff) || (!isPlayer1 && maxAvailableMove > Math::Abs(distanceToBearOff)))
+                        {
+                            // РџСЂРѕРІРµСЂСЏРµРј, РЅРµС‚ Р»Рё С€Р°С€РµРє РґР°Р»СЊС€Рµ С‚РµРєСѓС‰РµР№ РІ РґРѕРјРµ
+                            bool furtherCheckersExist = false;
+                            for (int i = 0; i < checkerPoints->Count; i++)
+                            {
+                                bool isCurrentCheckerPlayer1 = (checkerColors[i].R < 100);
+                                if (isCurrentCheckerPlayer1 == isPlayer1 && checkerPoints[i] != -1 && checkerPoints[i] != -2)
+                                {
+                                    if (isPlayer1 && checkerPoints[i] > currentPoint && checkerPoints[i] <= 5)
+                                    {
+                                        furtherCheckersExist = true;
+                                        break;
+                                    }
+                                    if (!isPlayer1 && checkerPoints[i] < currentPoint && checkerPoints[i] >= 18)
+                                    {
+                                        furtherCheckersExist = true;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (!furtherCheckersExist)
+                            {
+                                validBearOffMove = true;
+                                usedMove = maxAvailableMove;
+                            }
+                        }
+                    }
+
+                    if (validBearOffMove)
+                    {
+                        if (isPlayer1)
+                        {
+                            bearOffCheckersP1->Add(selectedCheckerIndex);
+                            checkerPositions[selectedCheckerIndex] = Point(bearOffPositionP1.X, bearOffPositionP1.Y - checkerRadius + bearOffCheckersP1->Count * 30);
+                        }
+                        else
+                        {
+                            bearOffCheckersP2->Add(selectedCheckerIndex);
+                            checkerPositions[selectedCheckerIndex] = Point(bearOffPositionP2.X, bearOffPositionP2.Y - checkerRadius + bearOffCheckersP2->Count * 30);
+                        }
+                        checkerPoints[selectedCheckerIndex] = -2; // РЈСЃР»РѕРІРЅР°СЏ С‚РѕС‡РєР° РґР»СЏ СЃРЅСЏС‚С‹С… С€Р°С€РµРє
+
+                        availableMoves->Remove(usedMove);
+                        moveCounter++;
+                        moved = true;
+
+                        CheckForWin();
+                    }
+                    else
+                    {
+                        // РќРµРїСЂР°РІРёР»СЊРЅС‹Р№ С…РѕРґ РґР»СЏ СЃРЅСЏС‚РёСЏ, РІРѕР·РІСЂР°С‰Р°РµРј С€Р°С€РєСѓ РЅР° РјРµСЃС‚Рѕ
+                        checkerPositions[selectedCheckerIndex] = initialCheckerPosition;
+                    }
+                }
+                else // РћР±С‹С‡РЅС‹Р№ С…РѕРґ РЅР° РґРѕСЃРєРµ
                 {
                     int currentPoint = checkerPoints[selectedCheckerIndex];
                     int moveLength = Math::Abs(targetPoint - currentPoint);
 
-                    Color opponentColor = (currentPlayer == 1) ? Color::FromArgb(240, 240, 240) : Color::FromArgb(50, 50, 50);
-                    int opponentCount = 0;
-
-                    for (int i = 0; i < checkerPoints->Count; i++)
+                    // РџСЂРѕРІРµСЂСЏРµРј, РµСЃС‚СЊ Р»Рё С‚Р°РєРѕР№ С…РѕРґ РІ РґРѕСЃС‚СѓРїРЅС‹С…
+                    bool validNormalMove = false;
+                    for each(int move in availableMoves)
                     {
-                        if (checkerPoints[i] == targetPoint && checkerColors[i] == opponentColor)
+                        if (move == moveLength)
                         {
-                            opponentCount++;
+                            validNormalMove = true;
+                            availableMoves->Remove(move);
+                            break;
                         }
                     }
 
-                    if (opponentCount < 2)
+                    if (validNormalMove)
                     {
-                        if (opponentCount > 0)
-                        {
-                            for (int i = 0; i < checkerPoints->Count; i++)
-                            {
-                                if (checkerPoints[i] == targetPoint && checkerColors[i] == opponentColor)
-                                {
-                                    if (currentPlayer == 1)
-                                    {
-                                        barCheckersP2->Add(i);
-                                        checkerPositions[i] = barPositionP2;
-                                    }
-                                    else
-                                    {
-                                        barCheckersP1->Add(i);
-                                        checkerPositions[i] = barPositionP1;
-                                    }
+                        Color opponentColor = (currentPlayer == 1) ? Color::FromArgb(240, 240, 240) : Color::FromArgb(50, 50, 50);
+                        int opponentCount = 0;
 
-                                    checkerPoints[i] = -1;
-                                    break;
-                                }
+                        for (int i = 0; i < checkerPoints->Count; i++)
+                        {
+                            if (checkerPoints[i] == targetPoint && checkerColors[i] == opponentColor)
+                            {
+                                opponentCount++;
                             }
                         }
 
-                        checkerPositions[selectedCheckerIndex] = targetPos;
-                        checkerPoints[selectedCheckerIndex] = targetPoint;
-                        checkerMoveCount[selectedCheckerIndex]++;
+                        if (opponentCount < 2)
+                        {
+                            if (opponentCount > 0)
+                            {
+                                for (int i = 0; i < checkerPoints->Count; i++)
+                                {
+                                    if (checkerPoints[i] == targetPoint && checkerColors[i] == opponentColor)
+                                    {
+                                        if (currentPlayer == 1)
+                                        {
+                                            barCheckersP2->Add(i);
+                                            // РћР±РЅРѕРІР»СЏРµРј РїРѕР·РёС†РёСЋ С€Р°С€РєРё РІ Р±Р°СЂРµ
+                                            checkerPositions[i] = Point(barPositionP2.X, barPositionP2.Y - checkerRadius + barCheckersP2->Count * 30);
+                                        }
+                                        else
+                                        {
+                                            barCheckersP1->Add(i);
+                                            // РћР±РЅРѕРІР»СЏРµРј РїРѕР·РёС†РёСЋ С€Р°С€РєРё РІ Р±Р°СЂРµ
+                                            checkerPositions[i] = Point(barPositionP1.X, barPositionP1.Y - checkerRadius + barCheckersP1->Count * 30);
+                                        }
 
-                        availableMoves->Remove(moveLength);
-                        moveCounter++;
+                                        checkerPoints[i] = -1; // РЈСЃР»РѕРІРЅР°СЏ С‚РѕС‡РєР° РґР»СЏ С€Р°С€РµРє РІ Р±Р°СЂРµ
+                                        break;
+                                    }
+                                }
+                            }
+
+                            checkerPositions[selectedCheckerIndex] = targetPos;
+                            checkerPoints[selectedCheckerIndex] = targetPoint;
+                            checkerMoveCount[selectedCheckerIndex]++;
+
+                            moveCounter++;
+                            moved = true;
+                        }
+                        else
+                        {
+                            // РџРѕР»Рµ Р·Р°РЅСЏС‚Рѕ РґРІСѓРјСЏ Рё Р±РѕР»РµРµ С€Р°С€РєР°РјРё РїСЂРѕС‚РёРІРЅРёРєР°, РІРѕР·РІСЂР°С‰Р°РµРј С€Р°С€РєСѓ РЅР° РјРµСЃС‚Рѕ
+                            checkerPositions[selectedCheckerIndex] = initialCheckerPosition;
+                        }
+                    }
+                    else
+                    {
+                        // РќРµРїСЂР°РІРёР»СЊРЅС‹Р№ С…РѕРґ, РІРѕР·РІСЂР°С‰Р°РµРј С€Р°С€РєСѓ РЅР° РјРµСЃС‚Рѕ
+                        checkerPositions[selectedCheckerIndex] = initialCheckerPosition;
                     }
                 }
                 break;
             }
         }
 
+        if (!moved)
+        {
+            checkerPositions[selectedCheckerIndex] = initialCheckerPosition;
+        }
+
         selectedCheckerIndex = -1;
         highlightedPoints->Clear();
         this->Invalidate();
+
+        // РџСЂРѕРІРµСЂСЏРµРј, РІРѕР·РјРѕР¶РЅРѕ Р»Рё СЃРЅСЏС‚РёРµ С€Р°С€РµРє РїРѕСЃР»Рµ С…РѕРґР°
+        bearingOffPossible = CheckIfBearingOffPossible(currentPlayer);
+    }
+
+    bool CheckIfBearingOffPossible(int player)
+    {
+        List<int>^ currentPlayerCheckers = gcnew List<int>();
+        Color playerColor = (player == 1) ? Color::FromArgb(50, 50, 50) : Color::FromArgb(240, 240, 240);
+
+        for (int i = 0; i < checkerPoints->Count; i++)
+        {
+            if (checkerColors[i] == playerColor && checkerPoints[i] != -1 && checkerPoints[i] != -2)
+            {
+                currentPlayerCheckers->Add(i);
+            }
+        }
+
+        if (currentPlayerCheckers->Count != 15 - ((player == 1) ? bearOffCheckersP1->Count : bearOffCheckersP2->Count))
+        {
+            return false; // РќРµ РІСЃРµ С€Р°С€РєРё РЅР° РґРѕСЃРєРµ
+        }
+
+        // РџСЂРѕРІРµСЂСЏРµРј, РІСЃРµ Р»Рё С€Р°С€РєРё РЅР°С…РѕРґСЏС‚СЃСЏ РІ РґРѕРјРµ
+        bool allInHome = true;
+        for each(int checkerIndex in currentPlayerCheckers)
+        {
+            if (player == 1)
+            {
+                if (checkerPoints[checkerIndex] > 5)
+                {
+                    allInHome = false;
+                    break;
+                }
+            }
+            else
+            {
+                if (checkerPoints[checkerIndex] < 18)
+                {
+                    allInHome = false;
+                    break;
+                }
+            }
+        }
+
+        // РџСЂРѕРІРµСЂСЏРµРј, РЅРµС‚ Р»Рё С€Р°С€РµРє РІ Р±Р°СЂРµ
+        bool noCheckersInBar = (player == 1 && barCheckersP1->Count == 0) ||
+            (player == 2 && barCheckersP2->Count == 0);
+
+        return allInHome && noCheckersInBar;
     }
 };
+
