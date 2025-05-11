@@ -1,5 +1,4 @@
-﻿#pragma once
-#include <Windows.h>
+﻿#include <Windows.h>
 #include <gcroot.h>
 #include <iostream>
 
@@ -8,6 +7,9 @@ using namespace System::Windows::Forms;
 using namespace System::Drawing;
 using namespace System::Collections::Generic;
 using namespace System::Drawing::Drawing2D;
+
+// Добавляем using для таймера
+using namespace System::Windows::Forms;
 
 // Singleton Pattern for Game Rules
 ref class GameRules
@@ -94,11 +96,20 @@ private:
     bool mustMoveFromBar;  // Новый флаг: обязан ходить из бара
     bool bearingOffPossible; // Флаг: возможно ли снятие шашек
 
-    // UI elements
+    // UI элементы
     Button^ rollDiceButton;
     Button^ endTurnButtonP1;
     Button^ endTurnButtonP2;
     Button^ showRulesButton;
+
+    // Таймеры для общего времени и времени хода
+ 
+    Label^ player1TimerLabel;
+    Label^ player2TimerLabel;
+    Timer^ turnTimer;
+    int totalSeconds;
+    int turnSeconds;
+    bool isTurnTimerActive;
 
     // Board dimensions
     int boardWidth;
@@ -111,19 +122,19 @@ private:
     int moveCounter;
     List<int>^ checkerMoveCount;
 
-    // Bar positions
+    // Bar позиции
     List<int>^ barCheckersP1;
     List<int>^ barCheckersP2;
     Point barPositionP1;
     Point barPositionP2;
 
-    // Bear off positions
+    // Bear off позиции
     Point bearOffPositionP1;
     Point bearOffPositionP2;
     List<int>^ bearOffCheckersP1;
     List<int>^ bearOffCheckersP2;
 
-    // Vertical offsets
+    // Внутренние константы
     const int VERTICAL_OFFSET = 50;
     const int UI_VERTICAL_OFFSET = 100;
 
@@ -134,19 +145,19 @@ public:
         void set(Point value) { barPositionP1 = value; }
     }
 
-        property Point BarPositionP2
+    property Point BarPositionP2
     {
         Point get() { return barPositionP2; }
         void set(Point value) { barPositionP2 = value; }
     }
 
-        property Point BearOffPositionP1
+    property Point BearOffPositionP1
     {
         Point get() { return bearOffPositionP1; }
         void set(Point value) { bearOffPositionP1 = value; }
     }
 
-        property Point BearOffPositionP2
+    property Point BearOffPositionP2
     {
         Point get() { return bearOffPositionP2; }
         void set(Point value) { bearOffPositionP2 = value; }
@@ -202,6 +213,17 @@ public:
             checkerMoveCount->Add(0);
         }
 
+  
+
+        turnTimer = gcnew Timer();
+        turnTimer->Interval = 1000;
+        turnTimer->Tick += gcnew EventHandler(this, &BackgammonForm::TurnTimer_Tick);
+        turnSeconds = 30; // время хода
+        isTurnTimerActive = false;
+
+        InitializeTimerLabels();
+
+   
         this->MouseDown += gcnew MouseEventHandler(this, &BackgammonForm::Form_MouseDown);
         this->MouseMove += gcnew MouseEventHandler(this, &BackgammonForm::Form_MouseMove);
         this->MouseUp += gcnew MouseEventHandler(this, &BackgammonForm::Form_MouseUp);
@@ -249,14 +271,32 @@ private:
         showRulesButton = gcnew Button();
         showRulesButton->Text = "Правила игры";
         showRulesButton->Size = System::Drawing::Size(120, 40);
-        showRulesButton->Location = System::Drawing::Point(
-            10, 10);
+        showRulesButton->Location = System::Drawing::Point(10, 10);
         showRulesButton->BackColor = Color::LightGreen;
         showRulesButton->Font = gcnew System::Drawing::Font("Arial", 10, FontStyle::Bold);
         showRulesButton->Click += gcnew EventHandler(this, &BackgammonForm::ShowRulesButton_Click);
         this->Controls->Add(showRulesButton);
     }
 
+    void InitializeTimerLabels()
+    {
+      
+        player1TimerLabel = gcnew Label();
+        player1TimerLabel->Font = gcnew  System::Drawing::Font("Arial", 10, FontStyle::Bold);
+        player1TimerLabel->ForeColor = Color::Black;
+        player1TimerLabel->Location = Point(100, 180 + UI_VERTICAL_OFFSET);
+        player1TimerLabel->Size = System::Drawing::Size(100, 20);
+        player1TimerLabel->Text = "Время: 30 сек";
+        this->Controls->Add(player1TimerLabel);
+
+        player2TimerLabel = gcnew Label();
+        player2TimerLabel->Font = gcnew  System::Drawing::Font("Arial", 10, FontStyle::Bold);
+        player2TimerLabel->ForeColor = Color::Black;
+        player2TimerLabel->Location = Point(this->ClientSize.Width + 500, 180 + UI_VERTICAL_OFFSET);
+        player2TimerLabel->Size = System::Drawing::Size(100, 20);
+        player2TimerLabel->Text = "Время: 30 сек";
+        this->Controls->Add(player2TimerLabel);
+    }
     void AddCheckersForPoint(int pointIndex, int count, CheckerFactory^ factory)
     {
         Color checkerColor = factory->CreateColor();
@@ -269,7 +309,6 @@ private:
             checkerMoveCount->Add(0);
         }
     }
-
     Point GetPointPosition(int pointIndex)
     {
         int x, y;
@@ -308,7 +347,6 @@ private:
         }
         return count;
     }
-
     void InitializeCheckers()
     {
         checkerPositions->Clear();
@@ -334,9 +372,64 @@ private:
         AddCheckersForPoint(16, 3, player2Factory);
         AddCheckersForPoint(18, 5, player2Factory);
     }
+    
+    void TurnTimer_Tick(Object^ sender, EventArgs^ e)
+    {
+        turnSeconds--;
+        UpdateTurnTimerDisplay();
+
+        if (turnSeconds <= 0)
+        {
+            turnTimer->Stop();
+            isTurnTimerActive = false;
+            MessageBox::Show("Время на ход истекло!", "Внимание", MessageBoxButtons::OK, MessageBoxIcon::Warning);
+            ForceTurnEnd();
+        }
+    }
+
+    void UpdateTurnTimerDisplay()
+    {
+        if (currentPlayer == 1)
+            player1TimerLabel->Text = String::Format("Время: {0} сек", turnSeconds);
+        else
+            player2TimerLabel->Text = String::Format("Время: {0} сек", turnSeconds);
+    }
+
+    void StartTurnTimer()
+    {
+        turnSeconds = 30;
+        UpdateTurnTimerDisplay();
+        turnTimer->Start();
+        isTurnTimerActive = true;
+    }
+
+    void StopTurnTimer()
+    {
+        turnTimer->Stop();
+        isTurnTimerActive = false;
+        UpdateTurnTimerDisplay();
+    }
+
+    void ForceTurnEnd()
+    {
+        availableMoves->Clear();
+        highlightedPoints->Clear();
+        selectedCheckerIndex = -1;
+        if (currentPlayer == 1)
+        {
+            ResetDiceAndEnableNextPlayer(2, (barCheckersP2->Count > 0));
+        }
+        else
+        {
+            ResetDiceAndEnableNextPlayer(1, (barCheckersP1->Count > 0));
+        }
+    }
 
     void RollDiceButton_Click(Object^ sender, EventArgs^ e)
     {
+        if (isTurnTimerActive)
+            return;
+
         if (moveCounter >= 2 && availableMoves->Count > 0)
         {
             MessageBox::Show("Вы уже переместили две шашки. Завершите свой ход.", "Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Warning);
@@ -382,7 +475,6 @@ private:
             endTurnButtonP2->Enabled = true;
         }
 
-        // Проверяем, есть ли шашки в баре у текущего игрока
         mustMoveFromBar = (currentPlayer == 1 && barCheckersP1->Count > 0) ||
             (currentPlayer == 2 && barCheckersP2->Count > 0);
 
@@ -399,35 +491,40 @@ private:
             this->Text += " (Дубль!)";
         }
 
-        rollDiceButton->Enabled = false;
+        // Запускаем таймер
+        StartTurnTimer();
+
         this->Invalidate();
     }
 
     void EndTurnButtonP1_Click(Object^ sender, EventArgs^ e)
     {
-        // Проверяем, есть ли шашки в баре у следующего игрока
+        StopTurnTimer();
         bool nextPlayerHasBar = (barCheckersP2->Count > 0);
         ResetDiceAndEnableNextPlayer(2, nextPlayerHasBar);
-        CheckForAutomaticBearOff(1); // Проверка на автоматическое снятие шашек для игрока 1
+        CheckForAutomaticBearOff(1);
     }
 
     void EndTurnButtonP2_Click(Object^ sender, EventArgs^ e)
     {
-        // Проверяем, есть ли шашки в баре у следующего игрока
+        StopTurnTimer();
         bool nextPlayerHasBar = (barCheckersP1->Count > 0);
         ResetDiceAndEnableNextPlayer(1, nextPlayerHasBar);
-        CheckForAutomaticBearOff(2); // Проверка на автоматическое снятие шашек для игрока 2
+        CheckForAutomaticBearOff(2);
     }
 
     void ResetDiceAndEnableNextPlayer(int nextPlayer, bool nextPlayerHasBar)
     {
+        // Останавливаем таймер
+        StopTurnTimer();
+
         availableMoves->Clear();
         highlightedPoints->Clear();
         selectedCheckerIndex = -1;
         endTurnButtonP1->Enabled = false;
         endTurnButtonP2->Enabled = false;
         hasMovedFromBar = false;
-        mustMoveFromBar = nextPlayerHasBar; // Устанавливаем флаг для следующего игрока
+        mustMoveFromBar = nextPlayerHasBar;
 
         if (nextPlayer == 1) {
             player1Dice1 = player1Dice2 = 0;
@@ -435,16 +532,24 @@ private:
         else {
             player2Dice1 = player2Dice2 = 0;
         }
-
+        // Запускаем таймер
+        if (nextPlayer == 1)
+        {
+            player1TimerLabel->ForeColor = Color::Red;
+            player2TimerLabel->ForeColor = Color::Black;
+        }
+        else
+        {
+            player2TimerLabel->ForeColor = Color::Red;
+            player1TimerLabel->ForeColor = Color::Black;
+        }
         rollDiceButton->Enabled = true;
         currentPlayer = nextPlayer;
         moveCounter = 0;
-
         for (int i = 0; i < checkerMoveCount->Count; i++)
         {
             checkerMoveCount[i] = 0;
         }
-
         this->Text = String::Format("Backgammon - Ход игрока {0}", currentPlayer);
         this->Invalidate();
     }
@@ -466,9 +571,9 @@ private:
 
         if (isInBar || mustMoveFromBar)
         {
-            if (!isInBar && mustMoveFromBar) return; // Если шашка не в баре, но должна быть, не показываем ходы
+            if (!isInBar && mustMoveFromBar) return;
 
-            for each(int move in availableMoves)
+            for each (int move in availableMoves)
             {
                 int targetPoint = isPlayer1 ? (24 - move) : (move - 1);
                 if (targetPoint >= 0 && targetPoint < 24)
@@ -495,10 +600,9 @@ private:
 
         int currentPoint = checkerPoints[checkerIndex];
 
-        // Проверяем, находятся ли все шашки игрока в доме и нет ли шашек в баре
         bool allInHomeAndNoBar = CheckIfBearingOffPossible(currentPlayer);
 
-        for each(int move in availableMoves)
+        for each (int move in availableMoves)
         {
             int targetPoint;
             if (isPlayer1)
@@ -512,19 +616,15 @@ private:
 
             if (allInHomeAndNoBar)
             {
-                // Логика снятия шашек
                 int distanceToBearOff = isPlayer1 ? (6 - currentPoint) : (currentPoint - 17);
-
                 if ((isPlayer1 && targetPoint >= 6) || (!isPlayer1 && targetPoint <= 17))
                 {
-                    // Если ход позволяет снять шашку или переходит за пределы дома
                     bool canBearOff = false;
                     if (isPlayer1 && targetPoint >= 6) canBearOff = true;
                     if (!isPlayer1 && targetPoint <= 17) canBearOff = true;
 
                     if (canBearOff)
                     {
-                        // Проверяем, нет ли шашек дальше текущей в доме, если бросок больше необходимого
                         bool furtherCheckersExist = false;
                         if ((isPlayer1 && move > distanceToBearOff) || (!isPlayer1 && move > Math::Abs(distanceToBearOff)))
                         {
@@ -546,19 +646,18 @@ private:
                                 }
                             }
                         }
-
                         if (!furtherCheckersExist)
                         {
-                            highlightedPoints->Add(isPlayer1 ? 24 : -1); // Условные точки для снятия шашек
+                            highlightedPoints->Add(isPlayer1 ? 24 : -1);
                         }
                     }
                 }
-                else // Обычный ход в доме
+                else
                 {
                     CheckAndAddHighlightedPoints(targetPoint, isPlayer1);
                 }
             }
-            else // Обычный ход на доске
+            else
             {
                 if (targetPoint >= 0 && targetPoint < 24)
                 {
@@ -572,7 +671,6 @@ private:
     {
         int opponentCount = 0;
         Color opponentColor = isPlayer1 ? Color::FromArgb(240, 240, 240) : Color::FromArgb(50, 50, 50);
-
         for (int i = 0; i < checkerPoints->Count; i++)
         {
             if (checkerPoints[i] == targetPoint && checkerColors[i] == opponentColor)
@@ -580,8 +678,7 @@ private:
                 opponentCount++;
             }
         }
-
-        if (opponentCount < 2) // Разрешено ходить на поле с 0 или 1 шашкой противника
+        if (opponentCount < 2)
         {
             highlightedPoints->Add(targetPoint);
         }
@@ -589,19 +686,22 @@ private:
 
     void DrawBoard(Graphics^ g)
     {
+        // Цвет доски — насыщенный бежевый
         Color boardColor = Color::FromArgb(210, 180, 140);
-
         g->FillRectangle(gcnew SolidBrush(boardColor), boardOffsetX, 50 + VERTICAL_OFFSET + UI_VERTICAL_OFFSET, boardWidth * 2, boardHeight);
         g->DrawRectangle(Pens::Black, boardOffsetX, 50 + VERTICAL_OFFSET + UI_VERTICAL_OFFSET, boardWidth * 2, boardHeight);
 
+        // Рисуем точки
         for (int i = 0; i < 12; i++)
         {
             DrawPoint(g, i, true);
             DrawPoint(g, i, false);
         }
 
+        // Номера точек
         DrawPointNumbers(g);
 
+        // Надпись "БАР"
         g->DrawString("БАР", gcnew Drawing::Font("Arial", 12, FontStyle::Bold),
             Brushes::Black, PointF(barPositionP1.X - 20, barPositionP1.Y - 50));
     }
@@ -625,9 +725,11 @@ private:
             triangle[2] = Point(x + triangleWidth, y + triangleHeight);
         }
 
-        Color darkColor = Color::FromArgb(139, 69, 19);
-        Color lightColor = Color::FromArgb(245, 222, 179);
+        // Цвета для треугольников — насыщенные
+        Color darkColor = Color::FromArgb(139, 69, 19);   // коричневый
+        Color lightColor = Color::FromArgb(245, 222, 179); // светлый бежевый
 
+        // Чередование цветов для более красивого эффекта
         Brush^ pointBrush = ((pointIndex % 2 == 0) ^ isTop) ? gcnew SolidBrush(darkColor) : gcnew SolidBrush(lightColor);
         g->FillPolygon(pointBrush, triangle);
         g->DrawPolygon(Pens::Black, triangle);
@@ -642,56 +744,70 @@ private:
         {
             int upperNumber = 13 + i;
             int upperX = boardOffsetX + (i * triangleWidth * 2) + triangleWidth - 10;
+
+            // Верхние номера — чуть смещены, чтобы не мешать треугольникам
             g->DrawString(upperNumber.ToString(), font, brush, PointF(upperX, 50 - 25 + VERTICAL_OFFSET + UI_VERTICAL_OFFSET));
 
             int lowerNumber = 12 - i;
             int lowerX = boardOffsetX + (i * triangleWidth * 2) + triangleWidth - 10;
+
+            // Нижние номера
             g->DrawString(lowerNumber.ToString(), font, brush, PointF(lowerX, 50 + boardHeight + 10 + VERTICAL_OFFSET + UI_VERTICAL_OFFSET));
         }
     }
 
     void DrawDice(Graphics^ g, int x, int y, int value, Color dotColor)
     {
-        g->FillRectangle(Brushes::White, x, y, 60, 60);
-        g->DrawRectangle(Pens::Black, x, y, 60, 60);
-        Brush^ dotBrush = gcnew SolidBrush(dotColor);
-        int dotSize = 10;
-        int dotOffset = 15;
+        // Основной цвет кубика
+        Color diceColor = Color::FromArgb(255, 255, 255); // белый
+        Pen^ borderPen = gcnew Pen(Color::DarkSlateGray, 2);
+        SolidBrush^ fillBrush = gcnew SolidBrush(diceColor);
+        SolidBrush^ dotBrush = gcnew SolidBrush(dotColor);
 
+        // Рисуем кубик с рамкой
+        g->FillRectangle(fillBrush, x, y, 60, 60);
+        g->DrawRectangle(borderPen, x, y, 60, 60);
+
+        int dotSize = 10;
+        int centerX = x + 30;
+        int centerY = y + 30;
+        int offset = 15;
+
+        // Рисуем точки в зависимости от значения
         switch (value)
         {
         case 1:
-            g->FillEllipse(dotBrush, x + 30 - dotSize / 2, y + 30 - dotSize / 2, dotSize, dotSize);
+            g->FillEllipse(dotBrush, centerX - dotSize / 2, centerY - dotSize / 2, dotSize, dotSize);
             break;
         case 2:
-            g->FillEllipse(dotBrush, x + dotOffset, y + dotOffset, dotSize, dotSize);
-            g->FillEllipse(dotBrush, x + 60 - dotOffset - dotSize, y + 60 - dotOffset - dotSize, dotSize, dotSize);
+            g->FillEllipse(dotBrush, centerX - offset - dotSize / 2, centerY - offset - dotSize / 2, dotSize, dotSize);
+            g->FillEllipse(dotBrush, centerX + offset - dotSize / 2, centerY + offset - dotSize / 2, dotSize, dotSize);
             break;
         case 3:
-            g->FillEllipse(dotBrush, x + 30 - dotSize / 2, y + 30 - dotSize / 2, dotSize, dotSize);
-            g->FillEllipse(dotBrush, x + dotOffset, y + dotOffset, dotSize, dotSize);
-            g->FillEllipse(dotBrush, x + 60 - dotOffset - dotSize, y + 60 - dotOffset - dotSize, dotSize, dotSize);
+            g->FillEllipse(dotBrush, centerX - offset - dotSize / 2, centerY - offset - dotSize / 2, dotSize, dotSize);
+            g->FillEllipse(dotBrush, centerX - dotSize / 2, centerY - dotSize / 2, dotSize, dotSize);
+            g->FillEllipse(dotBrush, centerX + offset - dotSize / 2, centerY + offset - dotSize / 2, dotSize, dotSize);
             break;
         case 4:
-            g->FillEllipse(dotBrush, x + dotOffset, y + dotOffset, dotSize, dotSize);
-            g->FillEllipse(dotBrush, x + 60 - dotOffset - dotSize, y + dotOffset, dotSize, dotSize);
-            g->FillEllipse(dotBrush, x + dotOffset, y + 60 - dotOffset - dotSize, dotSize, dotSize);
-            g->FillEllipse(dotBrush, x + 60 - dotOffset - dotSize, y + 60 - dotOffset - dotSize, dotSize, dotSize);
+            g->FillEllipse(dotBrush, centerX - offset - dotSize / 2, centerY - offset - dotSize / 2, dotSize, dotSize);
+            g->FillEllipse(dotBrush, centerX + offset - dotSize / 2, centerY - offset - dotSize / 2, dotSize, dotSize);
+            g->FillEllipse(dotBrush, centerX - offset - dotSize / 2, centerY + offset - dotSize / 2, dotSize, dotSize);
+            g->FillEllipse(dotBrush, centerX + offset - dotSize / 2, centerY + offset - dotSize / 2, dotSize, dotSize);
             break;
         case 5:
-            g->FillEllipse(dotBrush, x + 30 - dotSize / 2, y + 30 - dotSize / 2, dotSize, dotSize);
-            g->FillEllipse(dotBrush, x + dotOffset, y + dotOffset, dotSize, dotSize);
-            g->FillEllipse(dotBrush, x + 60 - dotOffset - dotSize, y + dotOffset, dotSize, dotSize);
-            g->FillEllipse(dotBrush, x + dotOffset, y + 60 - dotOffset - dotSize, dotSize, dotSize);
-            g->FillEllipse(dotBrush, x + 60 - dotOffset - dotSize, y + 60 - dotOffset - dotSize, dotSize, dotSize);
+            g->FillEllipse(dotBrush, centerX - dotSize / 2, centerY - dotSize / 2, dotSize, dotSize);
+            g->FillEllipse(dotBrush, centerX - offset - dotSize / 2, centerY - offset - dotSize / 2, dotSize, dotSize);
+            g->FillEllipse(dotBrush, centerX + offset - dotSize / 2, centerY - offset - dotSize / 2, dotSize, dotSize);
+            g->FillEllipse(dotBrush, centerX - offset - dotSize / 2, centerY + offset - dotSize / 2, dotSize, dotSize);
+            g->FillEllipse(dotBrush, centerX + offset - dotSize / 2, centerY + offset - dotSize / 2, dotSize, dotSize);
             break;
         case 6:
-            g->FillEllipse(dotBrush, x + dotOffset, y + 10, dotSize, dotSize);
-            g->FillEllipse(dotBrush, x + dotOffset, y + 30 - dotSize / 2, dotSize, dotSize);
-            g->FillEllipse(dotBrush, x + dotOffset, y + 50, dotSize, dotSize);
-            g->FillEllipse(dotBrush, x + 60 - dotOffset - dotSize, y + 10, dotSize, dotSize);
-            g->FillEllipse(dotBrush, x + 60 - dotOffset - dotSize, y + 30 - dotSize / 2, dotSize, dotSize);
-            g->FillEllipse(dotBrush, x + 60 - dotOffset - dotSize, y + 50, dotSize, dotSize);
+            g->FillEllipse(dotBrush, centerX - offset - dotSize / 2, centerY - 20, dotSize, dotSize);
+            g->FillEllipse(dotBrush, centerX - offset - dotSize / 2, centerY + 20, dotSize, dotSize);
+            g->FillEllipse(dotBrush, centerX + offset - dotSize / 2, centerY - 20, dotSize, dotSize);
+            g->FillEllipse(dotBrush, centerX + offset - dotSize / 2, centerY + 20, dotSize, dotSize);
+            g->FillEllipse(dotBrush, centerX - dotSize / 2, centerY - 20, dotSize, dotSize);
+            g->FillEllipse(dotBrush, centerX - dotSize / 2, centerY + 20, dotSize, dotSize);
             break;
         }
     }
@@ -727,24 +843,24 @@ private:
                 checkerRadius * 2, checkerRadius * 2);
         }
 
-        // Подсвечиваем возможные ходы
-        for each(int point in highlightedPoints)
+        // Подсветка возможных ходов
+        for each (int point in highlightedPoints)
         {
             Point pos;
             bool isBearOffHighlight = false;
-            if (point == 24) // Условная точка для снятия шашки игроком 1
+            if (point == 24)
             {
                 pos = bearOffPositionP1;
                 isBearOffHighlight = true;
             }
-            else if (point == -1) // Условная точка для снятия шашки игроком 2
+            else if (point == -1)
             {
                 pos = bearOffPositionP2;
                 isBearOffHighlight = true;
             }
             else
             {
-                Color highlightColor = (currentPlayer == 1) ? Color::FromArgb(50, 50, 50) : Color::FromArgb(240, 240, 240); // Цвет текущего игрока
+                Color highlightColor = (currentPlayer == 1) ? Color::FromArgb(50, 50, 50) : Color::FromArgb(240, 240, 240);
                 pos = GetCheckerPositionOnPoint(point, GetPointCount(point, highlightColor));
             }
 
@@ -752,7 +868,7 @@ private:
                 checkerRadius * 2 + 10, checkerRadius * 2 + 10);
         }
 
-        // Рисуем все шашки на доске
+        // Рисуем все шашки
         for (int i = 0; i < checkerPositions->Count; i++)
         {
             if (barCheckersP1->Contains(i) || barCheckersP2->Contains(i))
@@ -774,7 +890,7 @@ private:
                 checkerRadius * 2);
         }
 
-        // Рисуем кубики для текущего игрока
+        // Рисуем кубики
         if (currentPlayer == 1)
         {
             DrawDice(g, 100, 100 + UI_VERTICAL_OFFSET, player1Dice1, Color::Black);
@@ -786,12 +902,11 @@ private:
             DrawDice(g, this->ClientSize.Width - 140, 100 + UI_VERTICAL_OFFSET, player2Dice2, Color::Red);
         }
 
-        // Отображаем информацию о текущем игроке
+        // Информация о текущем ходе
         String^ turnText = String::Format("Текущий ход: Игрок {0}", currentPlayer);
         g->DrawString(turnText, gcnew Drawing::Font("Arial", 16, FontStyle::Bold),
             Brushes::DarkBlue, PointF(this->ClientSize.Width / 2 - 100, 10 + UI_VERTICAL_OFFSET));
 
-        // Если игрок должен ходить из бара, выводим сообщение
         if (mustMoveFromBar)
         {
             String^ message = "Вы должны ходить шашкой из бара!";
@@ -800,74 +915,63 @@ private:
         }
     }
 
-   void CheckForAutomaticBearOff(int player)
-{
-    List<int>^ currentPlayerCheckers = gcnew List<int>();
-    // Определяем цвет шашек для каждого игрока
-    Color playerColor = (player == 1) ? Color::FromArgb(50, 50, 50) : Color::FromArgb(240, 240, 240);
-
-    // Собираем индексы шашек текущего игрока
-    for (int i = 0; i < checkerPoints->Count; i++)
+    void CheckForAutomaticBearOff(int player)
     {
-        if (checkerColors[i] == playerColor && checkerPoints[i] != -1 && checkerPoints[i] != -2)
+        List<int>^ currentPlayerCheckers = gcnew List<int>();
+        Color playerColor = (player == 1) ? Color::FromArgb(50, 50, 50) : Color::FromArgb(240, 240, 240);
+        for (int i = 0; i < checkerPoints->Count; i++)
         {
-            currentPlayerCheckers->Add(i);
-        }
-    }
-
-    // Проверка, все ли шашки находятся в доме
-    bool allInHome = true;
-
-    for each (int checkerIndex in currentPlayerCheckers)
-    {
-        int point = checkerPoints[checkerIndex];
-
-        if (player == 1)
-        {
-            // Для игрока 1: дом — поля 19-14 → номера 14–19
-            if (point < 14 || point > 19)
+            if (checkerColors[i] == playerColor && checkerPoints[i] != -1 && checkerPoints[i] != -2)
             {
-                allInHome = false;
-                break;
+                currentPlayerCheckers->Add(i);
             }
         }
-        else
-        {
-            // Для игрока 2: дом — поля 1-6 → номера 0–5
-            if (point < 0 || point > 5)
-            {
-                allInHome = false;
-                break;
-            }
-        }
-    }
 
-    // Проверка, что в баре нет шашек этого игрока
-    bool noCheckersInBar = (player == 1 && barCheckersP1->Count == 0) ||
-                           (player == 2 && barCheckersP2->Count == 0);
-
-    // Если все в доме и в баре нет шашек, можно автоматом снимать
-    if (allInHome && noCheckersInBar)
-    {
+        bool allInHome = true;
         for each (int checkerIndex in currentPlayerCheckers)
         {
-            // Обновляем позицию и статус снятых шашек
+            int point = checkerPoints[checkerIndex];
             if (player == 1)
             {
-                bearOffCheckersP1->Add(checkerIndex);
-                checkerPoints[checkerIndex] = -2; // Условная точка для снятых шашек
-                checkerPositions[checkerIndex] = Point(bearOffPositionP1.X, bearOffPositionP1.Y - checkerRadius + bearOffCheckersP1->Count * 30);
+                if (point < 14 || point > 19)
+                {
+                    allInHome = false;
+                    break;
+                }
             }
             else
             {
-                bearOffCheckersP2->Add(checkerIndex);
-                checkerPoints[checkerIndex] = -2; // Условная точка для снятых шашек
-                checkerPositions[checkerIndex] = Point(bearOffPositionP2.X, bearOffPositionP2.Y - checkerRadius + bearOffCheckersP2->Count * 30);
+                if (point < 0 || point > 5)
+                {
+                    allInHome = false;
+                    break;
+                }
             }
         }
-        CheckForWin(); // Проверка на победу
+
+        bool noCheckersInBar = (player == 1 && barCheckersP1->Count == 0) ||
+            (player == 2 && barCheckersP2->Count == 0);
+
+        if (allInHome && noCheckersInBar)
+        {
+            for each (int checkerIndex in currentPlayerCheckers)
+            {
+                if (player == 1)
+                {
+                    bearOffCheckersP1->Add(checkerIndex);
+                    checkerPoints[checkerIndex] = -2; // условная точка для снятых
+                    checkerPositions[checkerIndex] = Point(bearOffPositionP1.X, bearOffPositionP1.Y - checkerRadius + bearOffCheckersP1->Count * 30);
+                }
+                else
+                {
+                    bearOffCheckersP2->Add(checkerIndex);
+                    checkerPoints[checkerIndex] = -2; // условная точка для снятых
+                    checkerPositions[checkerIndex] = Point(bearOffPositionP2.X, bearOffPositionP2.Y - checkerRadius + bearOffCheckersP2->Count * 30);
+                }
+            }
+            CheckForWin();
+        }
     }
-}
 
     void CheckForWin()
     {
@@ -899,6 +1003,11 @@ private:
         endTurnButtonP1->Enabled = false;
         endTurnButtonP2->Enabled = false;
         rollDiceButton->Enabled = true;
+        turnSeconds = 30;
+        turnTimer->Stop();
+        UpdateTurnTimerDisplay();
+        player1TimerLabel->Text = "Время: 30 сек";
+        player2TimerLabel->Text = "Время: 30 сек";
         this->Text = "Backgammon";
         this->Invalidate();
     }
@@ -907,7 +1016,6 @@ private:
     {
         if (availableMoves->Count == 0) return;
 
-        // Если игрок должен ходить из бара, разрешаем выбирать только шашки из бара
         if (mustMoveFromBar)
         {
             for (int i = 0; i < checkerPositions->Count; i++)
@@ -935,15 +1043,13 @@ private:
             return;
         }
 
-        // Обычный выбор шашки
         for (int i = 0; i < checkerPositions->Count; i++)
         {
             bool isPlayer1 = (checkerColors[i].R < 100);
             if ((currentPlayer == 1 && isPlayer1) || (currentPlayer == 2 && !isPlayer1))
             {
-                // Пропускаем шашки в баре и снятые шашки
-                if ((isPlayer1 && barCheckersP1->Contains(i)) || (!isPlayer1 && barCheckersP2->Contains(i)) ||
-                    (isPlayer1 && bearOffCheckersP1->Contains(i)) || (!isPlayer1 && bearOffCheckersP2->Contains(i)))
+                if ((isPlayer1 && barCheckersP1->Contains(i)) || (!isPlayer1 && barCheckersP2->Contains(i))
+                    || (isPlayer1 && bearOffCheckersP1->Contains(i)) || (!isPlayer1 && bearOffCheckersP2->Contains(i)))
                 {
                     continue;
                 }
@@ -993,7 +1099,7 @@ private:
 
         bool moved = false;
 
-        for each(int targetPoint in highlightedPoints)
+        for each (int targetPoint in highlightedPoints)
         {
             Point targetPos;
             bool isBearOffTarget = false;
@@ -1026,11 +1132,11 @@ private:
                 if (isInBar)
                 {
                     hasMovedFromBar = true;
-                    mustMoveFromBar = false; // Снимаем флаг обязательного хода из бара
+                    mustMoveFromBar = false; // снимаем флаг обязательного хода из бара
 
                     int moveUsed = isPlayer1 ? (24 - targetPoint) : (targetPoint + 1);
                     bool validMoveFromBar = false;
-                    for each(int move in availableMoves)
+                    for each (int move in availableMoves)
                     {
                         if (move == moveUsed)
                         {
@@ -1055,22 +1161,19 @@ private:
                     }
                     else
                     {
-                        // Неправильный ход из бара, возвращаем шашку на место
+                        // неправильный ход из бара
                         checkerPositions[selectedCheckerIndex] = initialCheckerPosition;
                     }
                 }
                 else if (isBearOffTarget)
                 {
-                    // Логика снятия шашки
                     int currentPoint = checkerPoints[selectedCheckerIndex];
                     int distanceToBearOff = isPlayer1 ? (6 - currentPoint) : (currentPoint - 17);
-
-                    // Проверяем, соответствует ли бросок кубика расстоянию до снятия
+                    // Проверка на правильность снятия
                     bool validBearOffMove = false;
                     int usedMove = -1;
 
-                    // Проверяем прямое соответствие броска
-                    for each(int move in availableMoves)
+                    for each (int move in availableMoves)
                     {
                         if (move == distanceToBearOff)
                         {
@@ -1080,21 +1183,17 @@ private:
                         }
                     }
 
-                    // Если прямое снятие невозможно, проверяем возможность снятия с более дальних полей
                     if (!validBearOffMove)
                     {
                         int maxAvailableMove = 0;
-                        for each(int move in availableMoves)
+                        for each (int move in availableMoves)
                         {
                             if (move > maxAvailableMove)
-                            {
                                 maxAvailableMove = move;
-                            }
                         }
 
                         if ((isPlayer1 && maxAvailableMove > distanceToBearOff) || (!isPlayer1 && maxAvailableMove > Math::Abs(distanceToBearOff)))
                         {
-                            // Проверяем, нет ли шашек дальше текущей в доме
                             bool furtherCheckersExist = false;
                             for (int i = 0; i < checkerPoints->Count; i++)
                             {
@@ -1113,7 +1212,6 @@ private:
                                     }
                                 }
                             }
-
                             if (!furtherCheckersExist)
                             {
                                 validBearOffMove = true;
@@ -1134,7 +1232,7 @@ private:
                             bearOffCheckersP2->Add(selectedCheckerIndex);
                             checkerPositions[selectedCheckerIndex] = Point(bearOffPositionP2.X, bearOffPositionP2.Y - checkerRadius + bearOffCheckersP2->Count * 30);
                         }
-                        checkerPoints[selectedCheckerIndex] = -2; // Условная точка для снятых шашек
+                        checkerPoints[selectedCheckerIndex] = -2;
 
                         availableMoves->Remove(usedMove);
                         moveCounter++;
@@ -1144,18 +1242,17 @@ private:
                     }
                     else
                     {
-                        // Неправильный ход для снятия, возвращаем шашку на место
+                        // неправильный ход
                         checkerPositions[selectedCheckerIndex] = initialCheckerPosition;
                     }
                 }
-                else // Обычный ход на доске
+                else
                 {
                     int currentPoint = checkerPoints[selectedCheckerIndex];
                     int moveLength = Math::Abs(targetPoint - currentPoint);
 
-                    // Проверяем, есть ли такой ход в доступных
                     bool validNormalMove = false;
-                    for each(int move in availableMoves)
+                    for each (int move in availableMoves)
                     {
                         if (move == moveLength)
                         {
@@ -1189,38 +1286,34 @@ private:
                                         if (currentPlayer == 1)
                                         {
                                             barCheckersP2->Add(i);
-                                            // Обновляем позицию шашки в баре
+                                            checkerPoints[i] = -1;
                                             checkerPositions[i] = Point(barPositionP2.X, barPositionP2.Y - checkerRadius + barCheckersP2->Count * 30);
                                         }
                                         else
                                         {
                                             barCheckersP1->Add(i);
-                                            // Обновляем позицию шашки в баре
+                                            checkerPoints[i] = -1;
                                             checkerPositions[i] = Point(barPositionP1.X, barPositionP1.Y - checkerRadius + barCheckersP1->Count * 30);
                                         }
-
-                                        checkerPoints[i] = -1; // Условная точка для шашек в баре
                                         break;
                                     }
                                 }
                             }
-
                             checkerPositions[selectedCheckerIndex] = targetPos;
                             checkerPoints[selectedCheckerIndex] = targetPoint;
                             checkerMoveCount[selectedCheckerIndex]++;
-
                             moveCounter++;
                             moved = true;
                         }
                         else
                         {
-                            // Поле занято двумя и более шашками противника, возвращаем шашку на место
+                            // поле занято
                             checkerPositions[selectedCheckerIndex] = initialCheckerPosition;
                         }
                     }
                     else
                     {
-                        // Неправильный ход, возвращаем шашку на место
+                        // неправильный ход
                         checkerPositions[selectedCheckerIndex] = initialCheckerPosition;
                     }
                 }
@@ -1237,7 +1330,6 @@ private:
         highlightedPoints->Clear();
         this->Invalidate();
 
-        // Проверяем, возможно ли снятие шашек после хода
         bearingOffPossible = CheckIfBearingOffPossible(currentPlayer);
     }
 
@@ -1261,7 +1353,7 @@ private:
 
         // Проверяем, все ли шашки находятся в доме
         bool allInHome = true;
-        for each(int checkerIndex in currentPlayerCheckers)
+        for each (int checkerIndex in currentPlayerCheckers)
         {
             if (player == 1)
             {
@@ -1286,6 +1378,6 @@ private:
             (player == 2 && barCheckersP2->Count == 0);
 
         return allInHome && noCheckersInBar;
-    }
-};
+    } 
 
+};
