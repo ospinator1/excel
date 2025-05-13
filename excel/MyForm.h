@@ -1,5 +1,4 @@
 ﻿#include <Windows.h>
-#include <gcroot.h>
 #include <iostream>
 
 using namespace System;
