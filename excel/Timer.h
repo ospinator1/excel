@@ -1,27 +1,22 @@
 #pragma once
 #include <Windows.h>
+#include "MyForm.h"
 
-using namespace System;
-using namespace System::Windows::Forms;
-
-ref class Timer
+ref class GameTimer
 {
 private:
+    System::Windows::Forms::Timer^ turnTimer;
     int totalSeconds;
     int turnSeconds;
     bool isActive;
-    System::Windows::Forms::Timer^ turnTimer; // явно указано System::Windows::Forms
-    Label^ player1TimerLabel;
-    Label^ player2TimerLabel;
-    int currentPlayer;
 
 public:
-    Timer(Label^ p1Label, Label^ p2Label);
+    GameTimer();
     void StartTurnTimer();
     void StopTimer();
-    void UpdateTimeDisplay();
-    void TurnTimer_Tick(Object^ sender, EventArgs^ e);
-    void SetCurrentPlayer(int player);
-    int GetTurnSeconds() { return turnSeconds; }
-    bool IsActive() { return isActive; }
+    void UpdateTimeDisplay(System::Windows::Forms::Label^ label);
+    void TickHandler(System::Object^ sender, System::EventArgs^ e);
+
+    property int TurnSeconds{ int get() { return turnSeconds; } void set(int value) { turnSeconds = value; } }
+    property bool IsActive{ bool get() { return isActive; } }
 };

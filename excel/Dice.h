@@ -1,15 +1,20 @@
 #pragma once
 #include <Windows.h>
-#include <ctime>
-#include <cstdlib>
+#include "MyForm.h"
 
-class Dice {
+ref class Dice
+{
 private:
-    int values[2];
+    array<int>^ values;
 
 public:
-    Dice();
-    void RollDice();
-    const int* GetDiceValues() const;
-    void DrawDice(HDC hdc, int x, int y, int value, COLORREF dotColor) const;
+    Dice(); //  онструктор класса Dice.
+
+    void RollDice(); // √енерирует случайные значени€ дл€ каждого кубика.
+
+    array<int>^ GetDiceValues(); // ¬озвращает массив значений кубиков.
+
+    void DrawDice(System::Drawing::Graphics^ g, int x, int y, int value, System::Drawing::Color dotColor); // –исует один кубик на графическом контексте.
+    // g - контекст рисовани€, x, y - координаты верхнего левого угла кубика,
+    // value - значение кубика (1-6), dotColor - цвет точек.
 };

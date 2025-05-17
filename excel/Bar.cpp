@@ -1,45 +1,41 @@
 #include "Bar.h"
 
-Bar::Bar() {
-    positionP1 = { 0, 0 };
-    positionP2 = { 0, 0 };
+Bar::Bar(Point p1Pos, Point p2Pos)
+{
+    player1Checkers = gcnew List<int>();
+    player2Checkers = gcnew List<int>();
+    player1Position = p1Pos;
+    player2Position = p2Pos;
 }
 
-void Bar::AddToBar(int checkerIndex, int player) {
-    if (player == 1) {
-        player1Checkers.push_back(checkerIndex);
-    }
-    else {
-        player2Checkers.push_back(checkerIndex);
-    }
+void Bar::AddToBar(int checkerIndex, bool isPlayer1)
+{
+    if (isPlayer1)
+        player1Checkers->Add(checkerIndex);
+    else
+        player2Checkers->Add(checkerIndex);
 }
 
-void Bar::RemoveFromBar(int checkerIndex, int player) {
-    auto& checkers = (player == 1) ? player1Checkers : player2Checkers;
-    auto it = std::find(checkers.begin(), checkers.end(), checkerIndex);
-    if (it != checkers.end()) {
-        checkers.erase(it);
-    }
+void Bar::RemoveFromBar(int checkerIndex, bool isPlayer1)
+{
+    if (isPlayer1)
+        player1Checkers->Remove(checkerIndex);
+    else
+        player2Checkers->Remove(checkerIndex);
 }
 
-int Bar::GetBarCount(int player) const {
-    return (player == 1) ? player1Checkers.size() : player2Checkers.size();
+int Bar::GetBarCount(bool isPlayer1)
+{
+    return isPlayer1 ? player1Checkers->Count : player2Checkers->Count;
 }
 
-bool Bar::Contains(int checkerIndex, int player) const {
-    const auto& checkers = (player == 1) ? player1Checkers : player2Checkers;
-    return std::find(checkers.begin(), checkers.end(), checkerIndex) != checkers.end();
+bool Bar::Contains(int checkerIndex, bool isPlayer1)
+{
+    return isPlayer1 ? player1Checkers->Contains(checkerIndex) : player2Checkers->Contains(checkerIndex);
 }
 
-POINT Bar::GetPosition(int player) const {
-    return (player == 1) ? positionP1 : positionP2;
-}
-
-void Bar::SetPosition(int player, POINT position) {
-    if (player == 1) {
-        positionP1 = position;
-    }
-    else {
-        positionP2 = position;
-    }
+void Bar::Clear()
+{
+    player1Checkers->Clear();
+    player2Checkers->Clear();
 }

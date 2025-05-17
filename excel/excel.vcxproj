@@ -131,7 +131,10 @@
     <ClCompile Include="Bar.cpp" />
     <ClCompile Include="Board.cpp" />
     <ClCompile Include="CheckerFactory.cpp" />
+    <ClCompile Include="Checkers.cpp" />
     <ClCompile Include="Dice.cpp" />
+    <ClCompile Include="Game.cpp" />
+    <ClCompile Include="GUI.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Rules.cpp" />
     <ClCompile Include="Timer.cpp" />
@@ -143,7 +146,7 @@
     <ClInclude Include="CheckerFactory.h" />
     <ClInclude Include="Dice.h" />
     <ClInclude Include="Game.h" />
-    <ClInclude Include="Header.h" />
+    <ClInclude Include="GUI.h" />
     <ClInclude Include="MyForm.h">
       <FileType>CppForm</FileType>
     </ClInclude>

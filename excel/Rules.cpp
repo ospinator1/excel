@@ -1,5 +1,7 @@
 #include "Rules.h"
 
+GameRules^ GameRules::instance = nullptr;
+
 GameRules::GameRules()
 {
     rulesText = "Правила игры в Нарды:\n\n";
@@ -24,7 +26,7 @@ GameRules^ GameRules::GetInstance()
     return instance;
 }
 
-String^ GameRules::GetRules()
+System::String^ GameRules::GetRules()
 {
     return rulesText;
 }

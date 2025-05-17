@@ -1,17 +1,15 @@
 #pragma once
+#include <string>
 
-using namespace System;
-
-public ref class GameRules
+ref class GameRules
 {
 private:
-    static GameRules^ instance;
-    String^ rulesText;
+    static GameRules^ instance; // Статический экземпляр класса GameRules (Singleton).
+    System::String^ rulesText; // Текст, содержащий правила игры.
 
-    GameRules();
+    GameRules(); // Приватный конструктор (для реализации Singleton).
 
 public:
-    static GameRules^ GetInstance();
-
-    String^ GetRules();
+    static GameRules^ GetInstance(); // Возвращает единственный экземпляр класса GameRules.
+    System::String^ GetRules(); // Возвращает текст правил игры.
 };
