@@ -1,0 +1,2220 @@
+<!doctype html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+        <title>Офисная сеть</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                height: 100%;
+                overflow: hidden;
+            }
+            body {
+                font-family: "Segoe UI", "Consolas", monospace;
+                background: linear-gradient(135deg, #0a0a1a 0%, #0a0a15 100%);
+                color: #e0e0e0;
+                overflow: hidden;
+            }
+            .dashboard {
+                display: flex;
+                width: 100%;
+                height: 100vh;
+                overflow: hidden;
+                gap: 0;
+            }
+
+            .panel-3d {
+                flex: 1;
+                background: #050510;
+                border-right: 3px solid #ff9800;
+                box-shadow: 10px 0 25px rgba(0, 0, 0, 0.5);
+                z-index: 5;
+                display: flex;
+                flex-direction: column;
+                height: 100vh;
+                overflow: hidden;
+                min-width: 0;
+            }
+
+            .left-controls {
+                background: #0a0a12;
+                border-bottom: 2px solid #ff9800;
+                flex-shrink: 0;
+                overflow-y: auto;
+                max-height: 45%;
+            }
+
+            .left-header {
+                background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
+                color: #00d9ff;
+                padding: 10px 12px;
+                text-align: center;
+                border-bottom: 2px solid #ff9800;
+            }
+            .left-header h2 {
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+            }
+
+            .canvas-container {
+                flex: 1;
+                position: relative;
+                min-height: 0;
+                background: #050510;
+            }
+            canvas {
+                display: block;
+                width: 100%;
+                height: 100%;
+                outline: none;
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+            .panel-3d-label {
+                position: absolute;
+                bottom: 15px;
+                left: 15px;
+                background: rgba(0, 0, 0, 0.7);
+                backdrop-filter: blur(5px);
+                padding: 6px 12px;
+                border-radius: 20px;
+                font-size: 10px;
+                color: #ff9800;
+                font-family: monospace;
+                z-index: 20;
+                pointer-events: none;
+                border-left: 3px solid #ff9800;
+            }
+
+            .panel-2d {
+                flex: 1;
+                background: #0f0f1a;
+                overflow-y: auto;
+                height: 100vh;
+                min-width: 0;
+            }
+            .main-controls {
+                padding: 0 12px 12px 12px;
+            }
+
+            @media (max-width: 800px) {
+                .dashboard {
+                    flex-direction: column;
+                    height: auto;
+                }
+                .panel-3d,
+                .panel-2d {
+                    flex: 0 0 auto;
+                    width: 100%;
+                    height: auto;
+                    min-height: 50vh;
+                }
+                .panel-3d {
+                    border-right: none;
+                    border-bottom: 3px solid #ff9800;
+                }
+                html,
+                body {
+                    overflow: auto;
+                }
+                body {
+                    overflow-y: auto;
+                }
+                .canvas-container {
+                    min-height: 300px;
+                }
+            }
+
+            .icon-pc {
+                position: relative;
+                width: 40px;
+                height: 40px;
+                margin: 0 auto 6px;
+            }
+            .icon-pc::before {
+                content: "";
+                position: absolute;
+                top: 5px;
+                left: 6px;
+                width: 28px;
+                height: 24px;
+                background: #1a1a2e;
+                border-radius: 4px;
+                border: 2px solid #00d9ff;
+            }
+            .icon-pc::after {
+                content: "";
+                position: absolute;
+                bottom: 2px;
+                left: 14px;
+                width: 12px;
+                height: 8px;
+                background: #1a1a2e;
+                border: 1px solid #00d9ff;
+                border-radius: 2px;
+            }
+            .icon-server {
+                position: relative;
+                width: 40px;
+                height: 40px;
+                margin: 0 auto 6px;
+            }
+            .icon-server::before {
+                content: "";
+                position: absolute;
+                top: 6px;
+                left: 8px;
+                width: 24px;
+                height: 16px;
+                background: #1a1a2e;
+                border: 2px solid #ff9800;
+                border-radius: 3px;
+            }
+            .icon-server::after {
+                content: "";
+                position: absolute;
+                top: 12px;
+                left: 12px;
+                width: 16px;
+                height: 4px;
+                background: #ff9800;
+                border-radius: 2px;
+                box-shadow: 0 6px 0 #ff9800;
+            }
+            .icon-folder {
+                position: relative;
+                width: 32px;
+                height: 28px;
+                display: inline-block;
+                vertical-align: middle;
+            }
+            .icon-folder::before {
+                content: "";
+                position: absolute;
+                top: 4px;
+                left: 4px;
+                width: 24px;
+                height: 18px;
+                background: #1a1a2e;
+                border: 2px solid #00d9ff;
+                border-radius: 3px 6px 3px 3px;
+            }
+            .icon-folder::after {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 6px;
+                width: 10px;
+                height: 6px;
+                background: #1a1a2e;
+                border: 2px solid #00d9ff;
+                border-bottom: none;
+                border-radius: 3px 3px 0 0;
+            }
+
+            .network-status {
+                background: #0a0a12;
+                padding: 8px 10px;
+                display: flex;
+                justify-content: space-around;
+                flex-wrap: wrap;
+                gap: 6px;
+                border-bottom: 1px solid #2a2a4a;
+            }
+            .status-card {
+                background: #14141f;
+                padding: 3px 8px;
+                border-radius: 8px;
+                text-align: center;
+                border: 1px solid #2a2a4a;
+                min-width: 65px;
+            }
+            .status-card .label {
+                font-size: 8px;
+                color: #8888aa;
+            }
+            .status-card .value {
+                font-size: 12px;
+                font-weight: bold;
+                color: #00d9ff;
+                font-family: monospace;
+            }
+
+            .mtu-control {
+                background: #0a0a12;
+                padding: 6px 12px;
+                border-bottom: 1px solid #2a2a4a;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+            .mtu-control label {
+                font-weight: bold;
+                color: #00d9ff;
+                font-size: 9px;
+            }
+            .mtu-info {
+                background: #14141f;
+                padding: 3px 8px;
+                border-radius: 6px;
+                font-size: 9px;
+                border-left: 3px solid #00d9ff;
+                color: #a0a0c0;
+                font-family: monospace;
+            }
+
+            .key-control {
+                background: #0a0a12;
+                padding: 6px 12px;
+                border-bottom: 1px solid #2a2a4a;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            .key-control label {
+                font-weight: bold;
+                color: #ff9800;
+                font-size: 9px;
+                font-family: monospace;
+            }
+            .key-display {
+                background: #14141f;
+                padding: 3px 6px;
+                border-radius: 6px;
+                font-family: monospace;
+                font-size: 8px;
+                color: #00d9ff;
+                border: 1px solid #ff9800;
+                word-break: break-all;
+                max-width: 160px;
+            }
+            .key-btn {
+                background: #ff9800;
+                color: #0a0a12;
+                border: none;
+                padding: 3px 8px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-weight: bold;
+                font-family: monospace;
+                font-size: 8px;
+            }
+            .key-btn:hover {
+                background: #ffb74d;
+            }
+
+            .global-cancel {
+                background: #0a0a12;
+                padding: 6px 12px;
+                border-bottom: 1px solid #2a2a4a;
+                display: flex;
+                justify-content: center;
+                gap: 8px;
+            }
+            .global-cancel-btn {
+                background: #ff4444;
+                color: white;
+                border: none;
+                padding: 5px 12px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 9px;
+                font-weight: bold;
+            }
+            .export-btn {
+                background: #4caf50;
+                color: white;
+                border: none;
+                padding: 5px 12px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 9px;
+                font-weight: bold;
+            }
+            .export-btn:hover {
+                background: #66bb6a;
+            }
+
+            .header {
+                background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
+                color: #00d9ff;
+                padding: 12px 16px;
+                text-align: center;
+                border-bottom: 2px solid #ff9800;
+                border-radius: 12px 12px 0 0;
+                margin-top: 8px;
+            }
+            .header h1 {
+                font-size: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+
+            .protocol-badge {
+                background: #1a1a3a;
+                padding: 2px 6px;
+                border-radius: 6px;
+                font-size: 8px;
+                margin: 0 3px;
+                display: inline-block;
+            }
+            .protocol-badge.tcp {
+                border-left: 3px solid #4caf50;
+                color: #4caf50;
+            }
+            .protocol-badge.udp {
+                border-left: 3px solid #ff9800;
+                color: #ff9800;
+            }
+
+            .floors-list {
+                background: #0a0a12;
+                margin: 12px 0;
+                border-radius: 12px;
+                border: 1px solid #2a2a4a;
+                overflow: hidden;
+            }
+            .floor-list-item {
+                border-bottom: 1px solid #1f1f2e;
+            }
+            .floor-list-item:last-child {
+                border-bottom: none;
+            }
+            .floor-header {
+                background: #14141f;
+                padding: 10px 14px;
+                cursor: pointer;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-weight: bold;
+            }
+            .floor-header:hover {
+                background: #1e1e2e;
+            }
+            .floor-name {
+                color: #00d9ff;
+                font-size: 12px;
+            }
+            .floor-dept {
+                color: #ff9800;
+                font-size: 9px;
+                background: #2a2a4a;
+                padding: 2px 8px;
+                border-radius: 12px;
+                white-space: nowrap;
+            }
+            .floor-expand-icon {
+                color: #888;
+                font-size: 11px;
+            }
+            .floor-devices-container {
+                max-height: 1200px;
+                overflow: hidden;
+                transition: max-height 0.25s ease-out;
+                background: #0a0a12;
+            }
+            .floor-devices-container.collapsed {
+                max-height: 0;
+            }
+            .floor-devices-inner {
+                padding: 10px 12px;
+                border-top: 1px solid #2a2a4a;
+            }
+            .devices-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                gap: 10px;
+            }
+            .server-card,
+            .pc-card {
+                background: #0a0a12;
+                border-radius: 8px;
+                padding: 8px;
+                border: 2px solid #2a2a4a;
+                cursor: pointer;
+                text-align: center;
+                transition: all 0.2s;
+                position: relative;
+            }
+            .server-card {
+                border-color: #ff9800;
+                background: #1a1a3a;
+            }
+            .pc-card.sender-selected,
+            .server-card.sender-selected {
+                border-color: #00d9ff;
+                background: #1a1a3a;
+                box-shadow: 0 0 8px rgba(0, 217, 255, 0.5);
+            }
+            .pc-card.recipient-selected,
+            .server-card.recipient-selected {
+                border-color: #ff9800;
+                background: #3a2a1a;
+            }
+            .pc-name,
+            .server-name {
+                font-weight: bold;
+                color: #00d9ff;
+                font-size: 10px;
+            }
+            .device-ip {
+                font-size: 7px;
+                color: #ffaa66;
+                font-family: monospace;
+                margin-top: 2px;
+            }
+            .pc-files,
+            .server-files {
+                font-size: 7px;
+                color: #4caf50;
+                margin-top: 3px;
+                white-space: nowrap;
+                overflow-x: hidden;
+                text-overflow: ellipsis;
+                max-width: 110px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .role-badge {
+                font-size: 7px;
+                text-align: center;
+                margin-top: 3px;
+                padding: 2px;
+                border-radius: 4px;
+                background: #2a2a4a;
+                color: #fff;
+            }
+            .recipient-checkbox {
+                position: absolute;
+                top: 4px;
+                left: 4px;
+                width: 16px;
+                height: 16px;
+                cursor: pointer;
+                accent-color: #ff9800;
+                z-index: 15;
+            }
+            .recipient-checkbox:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+            }
+            .plus-menu-btn {
+                position: absolute;
+                bottom: 3px;
+                right: 3px;
+                width: 18px;
+                height: 18px;
+                background: #2a2a4a;
+                color: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 10px;
+                cursor: pointer;
+                border: none;
+                z-index: 10;
+            }
+            .plus-menu-btn:hover {
+                background: #00d9ff;
+            }
+            .server-plus {
+                position: absolute;
+                bottom: 3px;
+                right: 3px;
+                width: 18px;
+                height: 18px;
+                background: #ff9800;
+                color: #0a0a12;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 10px;
+                cursor: pointer;
+                border: none;
+                z-index: 10;
+            }
+            .server-plus:hover {
+                background: #ffb74d;
+            }
+            .cancel-role-btn {
+                position: absolute;
+                top: 2px;
+                right: 2px;
+                width: 16px;
+                height: 16px;
+                background: #ff4444;
+                color: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 9px;
+                cursor: pointer;
+                border: none;
+                z-index: 20;
+                font-weight: bold;
+            }
+            .cancel-role-btn:hover {
+                background: #ff6666;
+            }
+
+            .context-menu {
+                position: fixed;
+                background: #1a1a2e;
+                border: 1px solid #00d9ff;
+                border-radius: 8px;
+                padding: 4px 0;
+                z-index: 1000;
+                min-width: 150px;
+            }
+            .context-menu-item {
+                padding: 5px 12px;
+                cursor: pointer;
+                color: #fff;
+                font-size: 10px;
+            }
+            .context-menu-item:hover {
+                background: #00d9ff;
+                color: #0a0a12;
+            }
+            .context-menu-divider {
+                height: 1px;
+                background: #2a2a4a;
+                margin: 3px 0;
+            }
+
+            .recipient-batch-bar {
+                background: #0a0a12;
+                padding: 6px 12px;
+                margin: 8px 0;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 8px;
+                border: 1px solid #ff9800;
+            }
+            .recipient-batch-bar span {
+                font-size: 9px;
+                color: #ff9800;
+            }
+            .batch-recipient-btn {
+                background: #2a2a4a;
+                color: #00d9ff;
+                border: none;
+                padding: 3px 8px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 8px;
+            }
+            .batch-recipient-btn:hover {
+                background: #ff9800;
+                color: #0a0a12;
+            }
+
+            .queue-info {
+                background: #0a0a12;
+                margin: 5px 0;
+                padding: 4px 8px;
+                border-radius: 6px;
+                font-size: 8px;
+                border-left: 3px solid #ff9800;
+                display: flex;
+                justify-content: space-between;
+                flex-wrap: wrap;
+            }
+
+            .priority-selector {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+                background: #14141f;
+                padding: 4px 8px;
+                border-radius: 6px;
+            }
+            .priority-option {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 8px;
+                cursor: pointer;
+            }
+            .priority-option input {
+                margin: 0;
+            }
+            .priority-high-color {
+                color: #ff6666;
+            }
+            .priority-medium-color {
+                color: #ffaa66;
+            }
+            .priority-low-color {
+                color: #66aaff;
+            }
+
+            .file-controls {
+                background: #0a0a12;
+                padding: 8px;
+                margin: 8px 0;
+                border-radius: 8px;
+                display: flex;
+                gap: 6px;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #2a2a4a;
+            }
+            .file-controls input,
+            .file-controls select {
+                padding: 4px 6px;
+                border: 1px solid #00d9ff;
+                border-radius: 4px;
+                background: #14141f;
+                color: #00d9ff;
+                font-size: 9px;
+            }
+            .add-file-btn {
+                background: #4caf50;
+                color: white;
+                border: none;
+                padding: 4px 10px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 9px;
+            }
+
+            .file-list {
+                max-height: 180px;
+                overflow-y: auto;
+                border: 1px solid #2a2a4a;
+                border-radius: 6px;
+                padding: 5px;
+                background: #0a0a12;
+                margin: 0 0 10px 0;
+            }
+            .file-item {
+                display: flex;
+                align-items: center;
+                padding: 5px;
+                margin: 4px 0;
+                background: #14141f;
+                border-radius: 5px;
+                cursor: pointer;
+                border: 1px solid #2a2a4a;
+            }
+            .file-item.selected {
+                background: #1a1a3a;
+            }
+            .file-checkbox {
+                margin-right: 8px;
+                width: 14px;
+                height: 14px;
+                cursor: pointer;
+                accent-color: #00d9ff;
+            }
+            .file-info {
+                flex: 1;
+            }
+            .file-name {
+                font-weight: bold;
+                font-size: 9px;
+                color: #ffffff;
+            }
+            .file-size {
+                font-size: 7px;
+                color: #8888aa;
+            }
+            .frag-count {
+                font-size: 7px;
+                color: #4caf50;
+                margin-top: 2px;
+            }
+            .protocol-type {
+                font-size: 6px;
+                display: inline-block;
+                padding: 1px 3px;
+                border-radius: 3px;
+                margin-left: 5px;
+            }
+            .protocol-tcp {
+                background: #4caf5033;
+                color: #4caf50;
+                border: 1px solid #4caf50;
+            }
+            .protocol-udp {
+                background: #ff980033;
+                color: #ff9800;
+                border: 1px solid #ff9800;
+            }
+            .priority-badge {
+                font-size: 6px;
+                display: inline-block;
+                padding: 1px 4px;
+                border-radius: 8px;
+                margin-left: 6px;
+                font-weight: bold;
+            }
+            .priority-badge.high {
+                background: #ff4444;
+                color: white;
+            }
+            .priority-badge.medium {
+                background: #ffaa44;
+                color: #1a1a2e;
+            }
+            .priority-badge.low {
+                background: #44aaff;
+                color: white;
+            }
+
+            .transfer-btn {
+                background: #00d9ff;
+                color: #0a0a12;
+                border: none;
+                padding: 8px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 10px;
+                margin: 8px 0;
+                width: 100%;
+                font-weight: bold;
+            }
+            .transfer-btn:disabled {
+                background: #2a2a4a;
+                color: #666;
+                cursor: not-allowed;
+            }
+
+            .server-section {
+                background: #14141f;
+                border-radius: 12px;
+                padding: 12px;
+                margin: 12px 0;
+                border: 1px solid #2a2a4a;
+            }
+            .cable-visual {
+                margin: 12px 0;
+                padding: 8px;
+                background: #0a0a12;
+                border-radius: 8px;
+                border: 1px solid #2a2a4a;
+                text-align: center;
+            }
+            .cable-container {
+                position: relative;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+            }
+            .cable-line {
+                flex: 1;
+                height: 6px;
+                background: repeating-linear-gradient(90deg, #ff9800, #ff9800 12px, #00d9ff 12px, #00d9ff 24px);
+                border-radius: 3px;
+                position: relative;
+            }
+            .packet-animation {
+                position: absolute;
+                width: 10px;
+                height: 14px;
+                background: #00ff88;
+                border-radius: 2px;
+                top: -5px;
+                transition: left 0.05s linear;
+                box-shadow: 0 0 6px #00ff88;
+            }
+            .cable-label {
+                font-size: 8px;
+                color: #8888aa;
+                min-width: 60px;
+                text-align: center;
+            }
+            .cable-label span {
+                display: block;
+                font-size: 7px;
+                color: #4caf50;
+            }
+
+            .active-transfers {
+                margin-top: 12px;
+            }
+            .active-transfers h3 {
+                color: #00d9ff;
+                font-size: 11px;
+                margin-bottom: 8px;
+            }
+            .transfer-item {
+                background: #0a0a12;
+                padding: 8px;
+                margin: 6px 0;
+                border-radius: 6px;
+                border-left: 3px solid #00d9ff;
+                font-size: 8px;
+            }
+            .transfer-item.udp-transfer {
+                border-left-color: #ff9800;
+            }
+            .progress-bar {
+                width: 100%;
+                height: 5px;
+                background: #2a2a4a;
+                border-radius: 3px;
+                overflow: hidden;
+                margin: 4px 0;
+            }
+            .progress-fill {
+                height: 100%;
+                background: linear-gradient(90deg, #00d9ff, #00b8d4);
+                width: 0%;
+            }
+            .progress-fill.udp-progress {
+                background: linear-gradient(90deg, #ff9800, #ffb74d);
+            }
+            .loss-warning {
+                color: #ff4444;
+                font-size: 7px;
+                margin-top: 4px;
+                font-weight: bold;
+            }
+            .fragments-info {
+                font-size: 7px;
+                color: #8888aa;
+                margin-top: 2px;
+            }
+
+            .transfer-log {
+                background: #0a0a12;
+                padding: 8px;
+                border-radius: 8px;
+                height: 180px;
+                overflow-y: auto;
+                font-family: monospace;
+                font-size: 8px;
+                margin-top: 10px;
+                border: 1px solid #2a2a4a;
+            }
+            .log-entry {
+                border-bottom: 1px solid #1a1a2e;
+                padding: 3px 0;
+                word-break: break-all;
+            }
+            .log-loss {
+                color: #ff8888;
+                border-left: 2px solid #ff6666;
+                padding-left: 5px;
+            }
+
+            .section-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin: 8px 0 6px 0;
+            }
+            .section-header h3 {
+                color: #00d9ff;
+                font-size: 11px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .selected-count {
+                font-size: 8px;
+                color: #00d9ff;
+            }
+            .batch-actions {
+                display: flex;
+                gap: 5px;
+            }
+            .batch-btn {
+                padding: 2px 6px;
+                background: #1a1a2e;
+                color: #00d9ff;
+                border: 1px solid #00d9ff;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 7px;
+            }
+
+            .modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.85);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 2000;
+            }
+            .modal-content {
+                background: #14141f;
+                border-radius: 14px;
+                padding: 16px;
+                width: 500px;
+                max-width: 90%;
+                max-height: 80%;
+                overflow-y: auto;
+                border: 2px solid #00d9ff;
+            }
+            .modal-header {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 12px;
+                color: #00d9ff;
+            }
+            .modal-close {
+                background: #ff4444;
+                border: none;
+                color: white;
+                width: 26px;
+                height: 26px;
+                border-radius: 50%;
+                cursor: pointer;
+            }
+            .file-group {
+                margin-bottom: 14px;
+            }
+            .file-group-title {
+                font-size: 10px;
+                padding: 4px 0;
+                border-bottom: 1px solid #2a2a4a;
+                margin-bottom: 6px;
+                color: #ff9800;
+            }
+            .file-detail-item {
+                background: #0a0a12;
+                padding: 6px;
+                margin: 5px 0;
+                border-radius: 8px;
+                border-left: 4px solid #4caf50;
+            }
+            .file-detail-name {
+                font-weight: bold;
+                color: #00d9ff;
+                font-size: 10px;
+            }
+            .badge-original {
+                background: #2a2a4a;
+                color: #00d9ff;
+                font-size: 8px;
+                padding: 2px 6px;
+                border-radius: 4px;
+                margin-right: 8px;
+            }
+            .badge-received {
+                background: #4caf50;
+                color: white;
+                font-size: 8px;
+                padding: 2px 6px;
+                border-radius: 4px;
+            }
+            .discovery-panel {
+                background: #0a0a12;
+                border-radius: 8px;
+                padding: 8px;
+                margin: 10px 0;
+                border: 1px solid #ff9800;
+                max-height: 130px;
+                overflow-y: auto;
+            }
+            .discovery-title {
+                font-size: 8px;
+                color: #ff9800;
+                margin-bottom: 6px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .discovery-item {
+                font-size: 7px;
+                padding: 3px 5px;
+                background: #14141f;
+                margin: 3px 0;
+                border-radius: 4px;
+                display: inline-block;
+                width: auto;
+                margin-right: 5px;
+                font-family: monospace;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="dashboard">
+            <div class="panel-3d">
+                <div class="left-controls">
+                    <div class="left-header"><h2>СТАТУС СЕТИ</h2></div>
+                    <div class="network-status">
+                        <div class="status-card">
+                            <div class="label">тип сети</div>
+                            <div class="value">gigabit eth</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="label">скорость</div>
+                            <div class="value">1000 мбит/с</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="label">нагрузка</div>
+                            <div class="value" id="currentLoadLeft">0</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="label">загрузка</div>
+                            <div class="value" id="utilizationLeft">0%</div>
+                        </div>
+                        <div class="status-card">
+                            <div class="label">активных</div>
+                            <div class="value" id="activeCountLeft">0</div>
+                        </div>
+                    </div>
+                    <div class="mtu-control">
+                        <label>стандарт mtu:</label>
+                        <div class="mtu-info"><span id="currentMTUDisplayLeft">mtu: 1500 байт</span></div>
+                    </div>
+                    <div class="key-control">
+                        <label>КЛЮЧ AES-GCM (256 бит):</label>
+                        <div class="key-display" id="keyDisplayLeft">0x</div>
+                        <button class="key-btn" onclick="generateNewKey()">сгенерировать</button
+                        ><button class="key-btn" onclick="copyKeyToClipboard()">копировать</button>
+                    </div>
+                    <div class="global-cancel">
+                        <button class="global-cancel-btn" id="globalCancelBtnLeft">СБРОСИТЬ ВСЕ</button>
+                        <button class="export-btn" onclick="exportLogsJSON()">JSON</button>
+                        <button class="export-btn" onclick="exportLogsXLSX()">XLSX</button>
+                    </div>
+                </div>
+                <div class="canvas-container">
+                    <canvas id="building3dCanvas"></canvas>
+                    <div class="panel-3d-label">НЕБОСКРЕБ | Офисная сеть</div>
+                </div>
+            </div>
+
+            <div class="panel-2d">
+                <div class="main-controls">
+                    <div class="header">
+                        <h1>
+                            <div class="icon-server"></div>
+                            Офисная сеть
+                        </h1>
+                    </div>
+                    <div class="recipient-batch-bar">
+                        <span>ВЫБОР ПОЛУЧАТЕЛЕЙ (после выбора отправителя):</span>
+                        <div>
+                            <button class="batch-recipient-btn" onclick="selectAllRecipients()">ВСЕ</button>
+                            <button class="batch-recipient-btn" onclick="clearAllRecipients()">СБРОС</button>
+                            <button class="batch-recipient-btn" onclick="selectAllServers()">СЕРВЕРЫ</button>
+                            <button class="batch-recipient-btn" onclick="selectAllPCs()">ПК</button>
+                        </div>
+                        <span id="recipientCountDisplay" style="color: #00d9ff">0 получателей</span>
+                    </div>
+                    <div class="queue-info" id="queueInfoPanel">
+                        <span>ДИНАМИЧЕСКАЯ ОЧЕРЕДЬ:</span>
+                        <span id="queueStatus">нет заданий</span>
+                        <span id="dynamicParallelInfo" style="color: #00d9ff">| паралл: 0/0</span>
+                    </div>
+                    <div class="floors-list" id="floorsListContainer"></div>
+                    <div class="discovery-panel" id="discoveryPanel">
+                        <div class="discovery-title">ОБНАРУЖЕННЫЕ УСТРОЙСТВА В СЕТИ (ARP)</div>
+                        <div id="devicesDiscoveryList">выберите отправителя для сканирования</div>
+                    </div>
+                    <div class="file-controls">
+                        <label>новый файл:</label>
+                        <input type="text" id="newFileName" placeholder="имя" value="документ" />
+                        <select id="newFileType">
+                            <option value="document">документ (TCP)</option>
+                            <option value="video">видео (UDP)</option>
+                            <option value="audio">аудио (TCP)</option>
+                            <option value="archive">архив (TCP)</option>
+                            <option value="database">база данных (TCP)</option>
+                            <option value="stream">стрим (UDP)</option>
+                        </select>
+                        <input
+                            type="number"
+                            id="newFileSize"
+                            value="50"
+                            min="5"
+                            max="450"
+                            step="10"
+                            style="width: 65px"
+                        /><label>мб</label>
+                        <div class="priority-selector">
+                            <label class="priority-option"
+                                ><input type="radio" name="newFilePriority" value="high" checked />
+                                <span class="priority-high-color">HIGH</span></label
+                            >
+                            <label class="priority-option"
+                                ><input type="radio" name="newFilePriority" value="medium" />
+                                <span class="priority-medium-color">MED</span></label
+                            >
+                            <label class="priority-option"
+                                ><input type="radio" name="newFilePriority" value="low" />
+                                <span class="priority-low-color">LOW</span></label
+                            >
+                        </div>
+                        <button class="add-file-btn" onclick="addNewFile()">+ добавить</button>
+                    </div>
+                    <div class="section-header">
+                        <h3>
+                            <div class="icon-folder"></div>
+                            доступные файлы <span id="senderSelectedCount" class="selected-count">[0]</span>
+                        </h3>
+                        <div class="batch-actions">
+                            <button class="batch-btn" onclick="selectAllFiles()">[все]</button
+                            ><button class="batch-btn" onclick="deselectAllFiles()">[сброс]</button>
+                        </div>
+                    </div>
+                    <div class="file-list" id="fileList"></div>
+                    <button class="transfer-btn" id="transferBtn" onclick="startPriorityTransfer()" disabled>
+                        [ выберите отправителя ]
+                    </button>
+                    <div class="server-section">
+                        <div class="server">
+                            <div class="icon-server" style="margin: 0 auto 6px"></div>
+                            <div class="computer-name">центральный коммутатор Gigabit Ethernet (1000BASE-T)</div>
+                            <div class="computer-status">
+                                Протокол выбирается автоматически: TCP для важных данных, UDP для потоков
+                            </div>
+                        </div>
+                        <div class="cable-visual">
+                            <div class="cable-container">
+                                <div class="cable-label">ОТПРАВИТЕЛЬ<br /><span id="senderLabel">—</span></div>
+                                <div class="cable-line"><div class="packet-animation" id="movingPacket"></div></div>
+                                <div class="cable-label">ПОЛУЧАТЕЛЬ<br /><span id="receiverLabel">—</span></div>
+                            </div>
+                            <div style="font-size: 7px; margin-top: 4px">
+                                UDP пакеты могут теряться, TCP гарантирует доставку
+                            </div>
+                        </div>
+                        <div class="active-transfers">
+                            <h3>активные передачи</h3>
+                            <div id="activeTransfersList">
+                                <div style="color: #8888aa; text-align: center">нет активных передач</div>
+                            </div>
+                        </div>
+                        <div class="transfer-log" id="transferLog"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+        <script type="importmap">
+            { "imports": { "three": "https://unpkg.com/three@0.128.0/build/three.module.js" } }
+        </script>
+        <script type="module">
+            import * as THREE from "three";
+            import { OrbitControls } from "https://unpkg.com/three@0.128.0/examples/jsm/controls/OrbitControls.js";
+            window.THREE = THREE;
+            const canvas = document.getElementById("building3dCanvas");
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x050510);
+            scene.fog = new THREE.FogExp2(0x050510, 0.006);
+            const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 1000);
+            camera.position.set(6, 5, 9);
+            camera.lookAt(0, 5, 0);
+            const renderer = new THREE.WebGLRenderer({ canvas, alpha: false, antialias: true });
+            function resizeCanvas() {
+                const container = document.querySelector(".canvas-container");
+                if (!container) return;
+                const w = container.clientWidth;
+                const h = container.clientHeight;
+                if (w === 0 || h === 0) return;
+                renderer.setSize(w, h, false);
+                camera.aspect = w / h;
+                camera.updateProjectionMatrix();
+            }
+            const resizeObserver = new ResizeObserver(() => {
+                resizeCanvas();
+            });
+            const containerDiv = document.querySelector(".canvas-container");
+            if (containerDiv) resizeObserver.observe(containerDiv);
+            window.addEventListener("resize", () => setTimeout(resizeCanvas, 50));
+            setTimeout(resizeCanvas, 100);
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 0.8;
+            controls.enableZoom = true;
+            controls.enablePan = false;
+            controls.target.set(0, 5.5, 0);
+            const ambientLight = new THREE.AmbientLight(0x333344);
+            scene.add(ambientLight);
+            const mainLight = new THREE.DirectionalLight(0xffffff, 1);
+            mainLight.position.set(5, 12, 8);
+            scene.add(mainLight);
+            const fillLight = new THREE.PointLight(0x4466cc, 0.4);
+            fillLight.position.set(-3, 5, 5);
+            scene.add(fillLight);
+            const backLight = new THREE.PointLight(0xffaa66, 0.25);
+            backLight.position.set(0, 6, -6);
+            scene.add(backLight);
+            const gridHelper = new THREE.GridHelper(18, 20, 0x88aaff, 0x335588);
+            gridHelper.position.y = -0.5;
+            gridHelper.material.transparent = true;
+            gridHelper.material.opacity = 0.25;
+            scene.add(gridHelper);
+            const buildingGroup = new THREE.Group();
+            const towerHeight = 9.5,
+                towerWidth = 2.2,
+                towerDepth = 2.2,
+                floorsCount = 12,
+                floorHeight = towerHeight / floorsCount;
+            const glassMat = new THREE.MeshStandardMaterial({
+                color: 0x3a6ea5,
+                emissive: 0x0a2a4a,
+                emissiveIntensity: 0.15,
+                metalness: 0.85,
+                roughness: 0.25,
+            });
+            const metalMat = new THREE.MeshStandardMaterial({ color: 0x88aacc, metalness: 0.9, roughness: 0.3 });
+            const towerBody = new THREE.Mesh(new THREE.BoxGeometry(towerWidth, towerHeight, towerDepth), glassMat);
+            towerBody.position.set(0, towerHeight / 2, 0);
+            buildingGroup.add(towerBody);
+            for (let i = -1; i <= 1; i++) {
+                const eGeo = new THREE.BoxGeometry(0.08, towerHeight, 0.08);
+                const edge = new THREE.Mesh(eGeo, metalMat);
+                edge.position.set(i * 1.15, towerHeight / 2, 1.16);
+                buildingGroup.add(edge);
+                const edgeBack = new THREE.Mesh(eGeo, metalMat);
+                edgeBack.position.set(i * 1.15, towerHeight / 2, -1.16);
+                buildingGroup.add(edgeBack);
+            }
+            for (let i = 1; i < floorsCount; i++) {
+                const beam = new THREE.Mesh(new THREE.BoxGeometry(towerWidth + 0.1, 0.05, towerDepth + 0.1), metalMat);
+                beam.position.set(0, i * floorHeight, 0);
+                buildingGroup.add(beam);
+            }
+            const lightMat = new THREE.MeshStandardMaterial({
+                color: 0xffaa55,
+                emissive: 0xff6600,
+                emissiveIntensity: 0.3,
+            });
+            for (let i = 0; i < floorsCount; i++) {
+                const yCenter = i * floorHeight + floorHeight / 2;
+                for (let side = -1; side <= 1; side++) {
+                    const winLight = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.55, 0.05), lightMat);
+                    winLight.position.set(side * 1.1, yCenter, 1.13);
+                    buildingGroup.add(winLight);
+                }
+            }
+            const spireMat = new THREE.MeshStandardMaterial({ color: 0xccaa77, metalness: 0.95 });
+            const spireBase = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.5, 0.6, 8), spireMat);
+            spireBase.position.set(0, towerHeight, 0);
+            buildingGroup.add(spireBase);
+            const spireTop = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.2, 1.2, 6), spireMat);
+            spireTop.position.set(0, towerHeight + 0.5, 0);
+            buildingGroup.add(spireTop);
+            const antenna = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.9, 4), spireMat);
+            antenna.position.set(0, towerHeight + 1.05, 0);
+            buildingGroup.add(antenna);
+            scene.add(buildingGroup);
+            const particleCount = 600;
+            const particlesGeometry = new THREE.BufferGeometry();
+            const particlesPositions = new Float32Array(particleCount * 3);
+            for (let i = 0; i < particleCount; i++) {
+                particlesPositions[i * 3] = (Math.random() - 0.5) * 25;
+                particlesPositions[i * 3 + 1] = Math.random() * 12;
+                particlesPositions[i * 3 + 2] = (Math.random() - 0.5) * 15 - 5;
+            }
+            particlesGeometry.setAttribute("position", new THREE.BufferAttribute(particlesPositions, 3));
+            const particlesMat = new THREE.PointsMaterial({
+                color: 0x88aaff,
+                size: 0.05,
+                transparent: true,
+                opacity: 0.5,
+            });
+            const particles = new THREE.Points(particlesGeometry, particlesMat);
+            scene.add(particles);
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                particles.rotation.y += 0.002;
+                renderer.render(scene, camera);
+            }
+            animate();
+        </script>
+
+        <script>
+            let currentMTU = 1500,
+                gcmOverhead = 28,
+                maxPayload = currentMTU - gcmOverhead,
+                nextFileId = 1;
+            let logEntries = [];
+            let arpReportedFlag = false;
+
+            function generateCryptoKey() {
+                const bytes = new Uint8Array(32);
+                crypto.getRandomValues(bytes);
+                return (
+                    "0x" +
+                    Array.from(bytes)
+                        .map((b) => b.toString(16).padStart(2, "0"))
+                        .join("")
+                );
+            }
+            let aesKey = generateCryptoKey();
+            function updateKeyDisplay() {
+                document.getElementById("keyDisplayLeft").innerHTML = aesKey.substring(0, 32) + "...";
+            }
+            window.generateNewKey = function () {
+                aesKey = generateCryptoKey();
+                updateKeyDisplay();
+                addLogToSystem("AES-GCM: Новый 256-битный ключ сгенерирован", "#ffaa66");
+            };
+            window.copyKeyToClipboard = function () {
+                navigator.clipboard.writeText(aesKey);
+                addLogToSystem("AES-GCM: Ключ скопирован", "#4caf50");
+            };
+            function calculateFragments(sizeMB) {
+                return Math.max(1, Math.ceil((sizeMB * 1024 * 1024 + gcmOverhead) / maxPayload));
+            }
+
+            function getProtocolForFileType(fileType, priority) {
+                if (fileType === "video" || fileType === "stream") return "UDP";
+                if (priority === "high") return "TCP";
+                if (fileType === "audio") return "UDP";
+                return "TCP";
+            }
+
+            function getExtensionForType(fileType) {
+                const extensions = {
+                    document: "pdf",
+                    video: "mp4",
+                    audio: "mp3",
+                    archive: "zip",
+                    database: "db",
+                    stream: "ts",
+                };
+                return extensions[fileType] || "dat";
+            }
+
+            function calculateDynamicUdpLoss() {
+                let utilization = parseFloat(document.getElementById("utilizationLeft").innerText) || 0;
+                let activeCount = activeTransfers.length;
+                let loadFactor =
+                    utilization < 30
+                        ? (utilization / 100) * 0.08
+                        : utilization < 60
+                          ? 0.08 + ((utilization - 30) / 30) * 0.17
+                          : utilization < 85
+                            ? 0.25 + ((utilization - 60) / 25) * 0.35
+                            : 0.6 + ((utilization - 85) / 15) * 0.3;
+                let activeFactor = Math.min(0.15, (activeCount / 10) * 0.15);
+                let collisionFactor = Math.random() < 0.05 + (utilization / 100) * 0.15 ? Math.random() * 0.15 : 0;
+                let totalLoss = (loadFactor + activeFactor + collisionFactor) * 100 + (Math.random() - 0.5) * 15;
+                return Math.min(95, Math.max(0, Math.round(totalLoss * 10) / 10));
+            }
+
+            const floorData = [
+                {
+                    id: 1,
+                    name: "1 ЭТАЖ",
+                    dept: "ФИНАНСОВЫЙ ОТДЕЛ",
+                    server: "SRV-FIN",
+                    serverDesc: "Финансовый сервер",
+                    pcs: ["PC-101", "PC-102", "PC-103", "PC-104"],
+                },
+                {
+                    id: 2,
+                    name: "2 ЭТАЖ",
+                    dept: "IT И РАЗРАБОТКА",
+                    server: "SRV-DEV",
+                    serverDesc: "IT сервер",
+                    pcs: ["PC-201", "PC-202", "PC-203", "PC-204"],
+                },
+                {
+                    id: 3,
+                    name: "3 ЭТАЖ",
+                    dept: "МАРКЕТИНГ И ДИЗАЙН",
+                    server: "SRV-MEDIA",
+                    serverDesc: "Медиасервер",
+                    pcs: ["PC-301", "PC-302", "PC-303", "PC-304"],
+                },
+                {
+                    id: 4,
+                    name: "4 ЭТАЖ",
+                    dept: "ИНЖИНИРИНГ И R&D",
+                    server: "SRV-ENG",
+                    serverDesc: "Инженерный сервер",
+                    pcs: ["PC-401", "PC-402", "PC-403", "PC-404"],
+                },
+            ];
+            let allDevices = [];
+            const deviceIPs = {};
+            let ipCounter = 10;
+            floorData.forEach((floor) => {
+                allDevices.push(floor.server);
+                deviceIPs[floor.server] = `192.168.1.${ipCounter++}`;
+                floor.pcs.forEach((pc) => {
+                    allDevices.push(pc);
+                    deviceIPs[pc] = `192.168.1.${ipCounter++}`;
+                });
+            });
+
+            let files = {},
+                receivedLog = {};
+            function getUniqueFileName(device, baseName) {
+                let name = baseName,
+                    counter = 1;
+                while (files[device] && files[device].some((f) => f.name === name)) {
+                    let dot = baseName.lastIndexOf(".");
+                    name =
+                        dot === -1
+                            ? `${baseName}(${counter})`
+                            : `${baseName.substring(0, dot)}(${counter})${baseName.substring(dot)}`;
+                    counter++;
+                }
+                return name;
+            }
+            allDevices.forEach((device) => {
+                files[device] = [];
+                receivedLog[device] = [];
+            });
+
+            function generateOfficeFiles(deviceName, isServer = false) {
+                const fileDefinitions = [
+                    { name: "отчёт", type: "document", sizeRange: [8, 45], priority: "high" },
+                    { name: "презентация", type: "document", sizeRange: [15, 65], priority: "medium" },
+                    { name: "документация", type: "document", sizeRange: [5, 35], priority: "high" },
+                    { name: "проект", type: "archive", sizeRange: [40, 180], priority: "medium" },
+                    { name: "база_данных", type: "database", sizeRange: [25, 95], priority: "high" },
+                    { name: "видео_обзор", type: "video", sizeRange: [120, 420], priority: "low" },
+                    { name: "архив", type: "archive", sizeRange: [85, 350], priority: "low" },
+                    { name: "интервью", type: "video", sizeRange: [80, 300], priority: "low" },
+                    { name: "демонстрация", type: "video", sizeRange: [100, 380], priority: "low" },
+                    { name: "аудио_запись", type: "audio", sizeRange: [15, 60], priority: "medium" },
+                    { name: "стрим_данных", type: "stream", sizeRange: [50, 200], priority: "medium" },
+                    { name: "отчёт_финансовый", type: "document", sizeRange: [10, 50], priority: "high" },
+                ];
+                let fileCount = isServer ? 12 + Math.floor(Math.random() * 6) : 5 + Math.floor(Math.random() * 6);
+                for (let i = 0; i < fileCount; i++) {
+                    const fd = fileDefinitions[Math.floor(Math.random() * fileDefinitions.length)];
+                    let size =
+                        Math.round((fd.sizeRange[0] + Math.random() * (fd.sizeRange[1] - fd.sizeRange[0])) * 10) / 10;
+                    let name = isServer
+                        ? `server_${fd.name}_${deviceName}`
+                        : `${fd.name}_${deviceName}_${Math.floor(Math.random() * 1000)}`;
+                    let ext = getExtensionForType(fd.type);
+                    let fullName = `${name}.${ext}`;
+                    let protocol = getProtocolForFileType(fd.type, fd.priority);
+                    files[deviceName].push({
+                        id: nextFileId++,
+                        name: fullName,
+                        size,
+                        fragments: calculateFragments(size),
+                        isOriginal: true,
+                        isServer,
+                        protocol,
+                        priority: fd.priority,
+                        fileType: fd.type,
+                    });
+                }
+                files[deviceName].sort((a, b) => {
+                    const pOrder = { high: 0, medium: 1, low: 2 };
+                    return pOrder[a.priority] - pOrder[b.priority];
+                });
+            }
+            allDevices.forEach((device) => {
+                generateOfficeFiles(device, device.startsWith("SRV-"));
+            });
+
+            let selectedSender = null,
+                selectedRecipients = new Set();
+            let activeTransfers = [],
+                transferId = 0,
+                maxBandwidth = 950;
+            let transferQueue = [];
+            let pendingTransfers = new Set();
+            let selectedFilesMap = {};
+            allDevices.forEach((device) => (selectedFilesMap[device] = new Set()));
+
+            function calculateDynamicParallelism() {
+                let utilization = activeTransfers.reduce((sum, t) => sum + t.baseSpeed, 0) / maxBandwidth;
+                let highPriorityCount = transferQueue.filter((j) => j.priority === "high").length;
+                if (highPriorityCount > 0 && utilization < 0.4)
+                    return Math.min(6, 3 + Math.floor((1 - utilization) * 5));
+                if (utilization < 0.3) return Math.min(5, 3 + Math.floor((1 - utilization) * 4));
+                if (utilization > 0.75) return Math.max(1, 2 - Math.floor((utilization - 0.7) * 5));
+                return 3;
+            }
+
+            function addLogToSystem(msg, color = "#00ff88", isLoss = false) {
+                const logDiv = document.getElementById("transferLog");
+                const time = new Date().toLocaleTimeString();
+                const timestamp = new Date().toISOString();
+                const entry = document.createElement("div");
+                entry.className = "log-entry" + (isLoss ? " log-loss" : "");
+                entry.style.color = color;
+                entry.innerHTML = `[${time}] ${msg}`;
+                const wasAtBottom = logDiv.scrollTop + logDiv.clientHeight >= logDiv.scrollHeight - 10;
+                logDiv.appendChild(entry);
+                if (wasAtBottom) logDiv.scrollTop = logDiv.scrollHeight;
+                if (logDiv.children.length > 300)
+                    while (logDiv.children.length > 250) logDiv.removeChild(logDiv.firstChild);
+                logEntries.push({ timestamp, time, message: msg, isLoss, color });
+                if (logEntries.length > 500) logEntries.shift();
+            }
+
+            function exportLogsJSON() {
+                const data = JSON.stringify(
+                    { exportDate: new Date().toISOString(), totalLogs: logEntries.length, logs: logEntries },
+                    null,
+                    2
+                );
+                const blob = new Blob([data], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `network_logs_${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                addLogToSystem("Экспорт логов в JSON выполнен", "#4caf50");
+            }
+
+            function exportLogsXLSX() {
+                const worksheetData = logEntries.map((log, idx) => ({
+                    "№": idx + 1,
+                    Время: log.time,
+                    Сообщение: log.message,
+                    Потеря: log.isLoss ? "Да" : "Нет",
+                }));
+                const ws = XLSX.utils.json_to_sheet(worksheetData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Сетевые логи");
+                XLSX.writeFile(wb, `network_logs_${new Date().toISOString().slice(0, 19).replace(/:/g, "-")}.xlsx`);
+                addLogToSystem("Экспорт логов в XLSX выполнен", "#4caf50");
+            }
+
+            window.exportLogsJSON = exportLogsJSON;
+            window.exportLogsXLSX = exportLogsXLSX;
+
+            function addLog(source, dest, action, details, color = "#88ccff", isLoss = false) {
+                addLogToSystem(`${source} -> ${dest} ${action} ${details}`, color, isLoss);
+            }
+            window.resetAllSelection = function () {
+                selectedSender = null;
+                selectedRecipients.clear();
+                transferQueue = [];
+                for (let pc in selectedFilesMap) selectedFilesMap[pc].clear();
+                updateFileListNoScroll();
+                updateAllDeviceRoles();
+                updateTransferButton();
+                updateRecipientCounter();
+                updateQueueDisplay();
+                addLogToSystem("СБРОС: Весь выбор отменён", "#ff9800");
+            };
+            window.cancelRole = function (deviceId, event) {
+                if (event) event.stopPropagation();
+                if (selectedSender === deviceId) {
+                    selectedSender = null;
+                    addLogToSystem(`СБРОС: ${deviceId} больше не отправитель`, "#ff9800");
+                }
+                if (selectedRecipients.has(deviceId)) {
+                    selectedRecipients.delete(deviceId);
+                    addLogToSystem(`СБРОС: ${deviceId} больше не получатель`, "#ff9800");
+                }
+                updateFileListNoScroll();
+                updateAllDeviceRoles();
+                updateTransferButton();
+                updateRecipientCounter();
+            };
+            function updateRecipientCounter() {
+                document.getElementById("recipientCountDisplay").innerHTML = `${selectedRecipients.size} получателей`;
+            }
+            window.toggleRecipientCheckbox = function (deviceId, event) {
+                if (event) event.stopPropagation();
+                if (!selectedSender) {
+                    addLogToSystem(`Сначала выберите отправителя через меню [+]`, "#ff4444");
+                    if (event.target) event.target.checked = false;
+                    return;
+                }
+                if (deviceId === selectedSender) {
+                    addLogToSystem(`Ошибка: ${deviceId} не может быть получателем`, "#ff4444");
+                    if (event.target) event.target.checked = false;
+                    return;
+                }
+                if (selectedRecipients.has(deviceId)) {
+                    selectedRecipients.delete(deviceId);
+                } else {
+                    selectedRecipients.add(deviceId);
+                }
+                updateAllDeviceRoles();
+                updateTransferButton();
+                updateRecipientCounter();
+            };
+            window.selectAllRecipients = function () {
+                if (!selectedSender) {
+                    addLogToSystem("Сначала выберите отправителя", "#ff4444");
+                    return;
+                }
+                allDevices.forEach((d) => {
+                    if (d !== selectedSender) selectedRecipients.add(d);
+                });
+                updateAllDeviceRoles();
+                updateTransferButton();
+                updateRecipientCounter();
+                addLogToSystem(`Выбраны все устройства (кроме отправителя) как получатели`, "#ff9800");
+            };
+            window.clearAllRecipients = function () {
+                selectedRecipients.clear();
+                updateAllDeviceRoles();
+                updateTransferButton();
+                updateRecipientCounter();
+                addLogToSystem(`Список получателей очищен`, "#8888aa");
+            };
+            window.selectAllServers = function () {
+                if (!selectedSender) {
+                    addLogToSystem("Сначала выберите отправителя", "#ff4444");
+                    return;
+                }
+                allDevices.forEach((d) => {
+                    if (d !== selectedSender && d.startsWith("SRV-")) selectedRecipients.add(d);
+                });
+                updateAllDeviceRoles();
+                updateTransferButton();
+                updateRecipientCounter();
+                addLogToSystem(`Выбраны все серверы как получатели`, "#ff9800");
+            };
+            window.selectAllPCs = function () {
+                if (!selectedSender) {
+                    addLogToSystem("Сначала выберите отправителя", "#ff4444");
+                    return;
+                }
+                allDevices.forEach((d) => {
+                    if (d !== selectedSender && !d.startsWith("SRV-")) selectedRecipients.add(d);
+                });
+                updateAllDeviceRoles();
+                updateTransferButton();
+                updateRecipientCounter();
+                addLogToSystem(`Выбраны все компьютеры как получатели`, "#ff9800");
+            };
+
+            function updateQueueDisplay() {
+                let high = transferQueue.filter((j) => j.priority === "high").length;
+                let med = transferQueue.filter((j) => j.priority === "medium").length;
+                let low = transferQueue.filter((j) => j.priority === "low").length;
+                let maxParallel = calculateDynamicParallelism();
+                document.getElementById("queueStatus").innerHTML = `очередь: HIGH:${high} MED:${med} LOW:${low}`;
+                document.getElementById("dynamicParallelInfo").innerHTML =
+                    `| паралл: ${activeTransfers.length}/${maxParallel}`;
+            }
+
+            function addToQueue(source, dest, file) {
+                transferQueue.push({ source, dest, file, priority: file.priority });
+                transferQueue.sort((a, b) => {
+                    const order = { high: 0, medium: 1, low: 2 };
+                    return order[a.priority] - order[b.priority];
+                });
+                updateQueueDisplay();
+                processQueue();
+            }
+
+            function processQueue() {
+                let maxParallel = calculateDynamicParallelism();
+                while (activeTransfers.length < maxParallel && transferQueue.length > 0) {
+                    const job = transferQueue.shift();
+                    startSingleTransferInternal(job.source, job.dest, job.file);
+                    updateQueueDisplay();
+                }
+            }
+
+            function startSingleTransferInternal(source, dest, file) {
+                const transferKey = `${source}|${dest}|${file.id}`;
+                if (pendingTransfers.has(transferKey)) return;
+                pendingTransfers.add(transferKey);
+                let protocol = file.protocol;
+                let lossRate = 0;
+                if (protocol === "UDP") {
+                    lossRate = calculateDynamicUdpLoss();
+                    addLog(
+                        source,
+                        dest,
+                        `UDP [${file.priority.toUpperCase()}]`,
+                        `"${file.name}" (${file.size}мб, ПОТЕРИ ${lossRate.toFixed(1)}%)`,
+                        "#ff9800",
+                        false
+                    );
+                } else {
+                    addLog(
+                        source,
+                        dest,
+                        `TCP [${file.priority.toUpperCase()}]`,
+                        `"${file.name}" (${file.size}мб)`,
+                        "#88ccff",
+                        false
+                    );
+                }
+                addLog(source, dest, `AES-GCM`, `файл зашифрован`, "#ffaa66", false);
+                let baseSpeed =
+                    protocol === "UDP"
+                        ? file.priority === "high"
+                            ? 380
+                            : file.priority === "medium"
+                              ? 260
+                              : 180
+                        : file.priority === "high"
+                          ? 250
+                          : file.priority === "medium"
+                            ? 180
+                            : 120;
+                let transfer = {
+                    id: transferId++,
+                    source,
+                    dest,
+                    fileName: file.name,
+                    fileSize: file.size,
+                    fragments: file.fragments,
+                    fragmentsSent: 0,
+                    fragmentsReceived: 0,
+                    baseSpeed,
+                    currentSpeed: baseSpeed,
+                    startTime: Date.now(),
+                    progress: 0,
+                    completed: false,
+                    fileId: file.id,
+                    protocol,
+                    lossRate,
+                    lostFragments: 0,
+                    priority: file.priority,
+                };
+                activeTransfers.push(transfer);
+                updateActiveTransfers();
+                setTimeout(() => {
+                    pendingTransfers.delete(transferKey);
+                }, 1000);
+                processQueue();
+            }
+
+            window.startPriorityTransfer = function () {
+                if (!selectedSender || selectedFilesMap[selectedSender].size === 0 || selectedRecipients.size === 0)
+                    return;
+                const filesToSend = Array.from(selectedFilesMap[selectedSender])
+                    .map((id) => files[selectedSender].find((f) => f.id === id))
+                    .filter((f) => f);
+                filesToSend.sort((a, b) => {
+                    const order = { high: 0, medium: 1, low: 2 };
+                    return order[a.priority] - order[b.priority];
+                });
+                let totalJobs = filesToSend.length * selectedRecipients.size;
+                addLogToSystem(
+                    `${selectedSender}: ${totalJobs} заданий в очередь (приоритет: HIGH → MED → LOW)`,
+                    `#ffaa66`
+                );
+                for (const dest of selectedRecipients) {
+                    for (const file of filesToSend) {
+                        addToQueue(selectedSender, dest, file);
+                    }
+                }
+                selectedFilesMap[selectedSender].clear();
+                updateFileListNoScroll();
+                updateQueueDisplay();
+                processQueue();
+            };
+
+            function completeTransfer(transfer) {
+                let successRate = 100;
+                let lostMsg = "";
+                if (transfer.protocol === "UDP" && transfer.lossRate > 0) {
+                    transfer.fragmentsReceived = Math.floor(transfer.fragments * (1 - transfer.lossRate / 100));
+                    transfer.lostFragments = transfer.fragments - transfer.fragmentsReceived;
+                    successRate = (transfer.fragmentsReceived / transfer.fragments) * 100;
+                    lostMsg = ` ПОТЕРЯНО ${transfer.lostFragments} из ${transfer.fragments}`;
+                    addLog(
+                        transfer.dest,
+                        transfer.source,
+                        `UDP ПРИЁМ`,
+                        `получено ${transfer.fragmentsReceived}/${transfer.fragments}`,
+                        "#ff6666",
+                        true
+                    );
+                } else {
+                    transfer.fragmentsReceived = transfer.fragments;
+                    addLog(
+                        transfer.dest,
+                        transfer.source,
+                        `TCP ПРИЁМ`,
+                        `все ${transfer.fragments} фрагментов`,
+                        "#66ff88",
+                        false
+                    );
+                }
+                addLog(transfer.dest, transfer.source, `AES-GCM`, `расшифровка`, "#4caf50", false);
+                let uniqueName = getUniqueFileName(transfer.dest, transfer.fileName);
+                let fileSizeWithLoss =
+                    transfer.protocol === "UDP" ? transfer.fileSize * (successRate / 100) : transfer.fileSize;
+                files[transfer.dest].push({
+                    id: nextFileId++,
+                    name: uniqueName,
+                    size: fileSizeWithLoss,
+                    fragments: transfer.fragments,
+                    isOriginal: false,
+                    receivedFrom: transfer.source,
+                    protocol: transfer.protocol,
+                    priority: transfer.priority,
+                });
+                addLog(
+                    transfer.dest,
+                    transfer.source,
+                    `ЗАВЕРШЕНО [${transfer.priority.toUpperCase()}]`,
+                    `${((Date.now() - transfer.startTime) / 1000).toFixed(1)} сек${lostMsg}`,
+                    "#4caf50",
+                    false
+                );
+                const index = activeTransfers.findIndex((t) => t.id === transfer.id);
+                if (index !== -1) activeTransfers.splice(index, 1);
+                if (selectedSender === transfer.dest) updateFileListNoScroll();
+                updateAllDeviceRoles();
+                updateActiveTransfers();
+                renderFloorsList();
+                processQueue();
+                updateQueueDisplay();
+            }
+            function simulateTransfers() {
+                for (const t of activeTransfers) {
+                    if (!t.completed) {
+                        let elapsed = (Date.now() - t.startTime) / 1000;
+                        let expectedTime = (t.fileSize * 8) / t.baseSpeed;
+                        t.progress = Math.min(100, (elapsed / expectedTime) * 100);
+                        t.fragmentsSent = Math.floor((t.progress / 100) * t.fragments);
+                        if (t.protocol === "UDP" && t.lossRate > 0) {
+                            let lossFactor = 1 - t.lossRate / 100;
+                            t.fragmentsReceived = Math.floor(t.fragmentsSent * lossFactor);
+                        } else {
+                            t.fragmentsReceived = t.fragmentsSent;
+                        }
+                        if (t.progress >= 100 && !t.completed) {
+                            t.completed = true;
+                            completeTransfer(t);
+                        }
+                    }
+                }
+                updateActiveTransfers();
+            }
+            window.showDeviceFiles = function (deviceId, event) {
+                if (event) event.stopPropagation();
+                const deviceFiles = files[deviceId] || [];
+                const original = deviceFiles.filter((f) => f.isOriginal === true);
+                const received = deviceFiles.filter((f) => f.isOriginal === false);
+                const totalSize = deviceFiles.reduce((s, f) => s + f.size, 0).toFixed(0);
+                const isServer = deviceId.startsWith("SRV-");
+                const modal = document.createElement("div");
+                modal.className = "modal";
+                modal.innerHTML = `<div class="modal-content"><div class="modal-header"><h3>${isServer ? "СЕРВЕР" : "КОМПЬЮТЕР"} ${deviceId} (${deviceIPs[deviceId]})</h3><button class="modal-close" onclick="this.closest('.modal').remove()">X</button></div><div><span class="badge-original">исходные: ${original.length}</span> <span class="badge-received">получено: ${received.length}</span> <span>всего: ${deviceFiles.length} файлов (${totalSize} МБ)</span></div><div class="file-group"><div class="file-group-title">ИСХОДНЫЕ</div>${original.map((f) => `<div class="file-detail-item"><div class="file-detail-name">${f.name} <span class="protocol-badge ${f.protocol === "UDP" ? "udp" : "tcp"}">${f.protocol}</span> <span class="priority-badge ${f.priority}">${f.priority}</span></div><div>${f.size} МБ | фрагментов: ${f.fragments}</div></div>`).join("") || "нет"}</div><div class="file-group"><div class="file-group-title">ПОЛУЧЕННЫЕ</div>${received.map((f) => `<div class="file-detail-item"><div class="file-detail-name">${f.name} <span class="protocol-badge ${f.protocol === "UDP" ? "udp" : "tcp"}">${f.protocol}</span> <span class="priority-badge ${f.priority}">${f.priority}</span></div><div>${f.size.toFixed(1)} МБ | от: ${f.receivedFrom || "?"}</div></div>`).join("") || "нет"}</div></div>`;
+                document.body.appendChild(modal);
+                modal.onclick = (e) => {
+                    if (e.target === modal) modal.remove();
+                };
+            };
+            function updateFileListNoScroll() {
+                const container = document.getElementById("fileList");
+                if (!selectedSender) {
+                    container.innerHTML =
+                        '<div style="text-align:center;color:#8888aa;padding:20px;">выберите отправителя через меню [+]</div>';
+                    return;
+                }
+                const list = files[selectedSender] || [];
+                const selected = selectedFilesMap[selectedSender] || new Set();
+                if (list.length === 0) {
+                    container.innerHTML = '<div style="text-align:center;color:#8888aa;">нет файлов</div>';
+                    return;
+                }
+                container.innerHTML = list
+                    .map(
+                        (f) =>
+                            `<div class="file-item ${selected.has(f.id) ? "selected" : ""}" onclick="toggleFileSelection(${f.id}, event)"><input type="checkbox" class="file-checkbox" ${selected.has(f.id) ? "checked" : ""} onclick="event.stopPropagation(); toggleFileSelection(${f.id}, event)"><div class="file-info"><div class="file-name">${f.name} <span class="protocol-type ${f.protocol === "UDP" ? "protocol-udp" : "protocol-tcp"}">${f.protocol}</span><span class="priority-badge ${f.priority}">${f.priority}</span></div><div class="file-size">${f.size} МБ</div><div class="frag-count">фрагментов: ${f.fragments}</div></div></div>`
+                    )
+                    .join("");
+                document.getElementById("senderSelectedCount").innerHTML = `[${selected.size}]`;
+                updateTransferButton();
+            }
+            window.toggleFileSelection = function (fileId, event) {
+                if (event && event.stopPropagation) event.stopPropagation();
+                if (!selectedSender) return;
+                const file = files[selectedSender].find((f) => f.id === fileId);
+                if (!file) return;
+                if (selectedFilesMap[selectedSender].has(fileId)) {
+                    selectedFilesMap[selectedSender].delete(fileId);
+                } else {
+                    selectedFilesMap[selectedSender].add(fileId);
+                }
+                updateFileListNoScroll();
+            };
+            window.selectAllFiles = function () {
+                if (!selectedSender) return;
+                files[selectedSender].forEach((f) => selectedFilesMap[selectedSender].add(f.id));
+                updateFileListNoScroll();
+                addLogToSystem(`На ${selectedSender} выбраны все файлы`, "#00d9ff");
+            };
+            window.deselectAllFiles = function () {
+                if (!selectedSender) return;
+                selectedFilesMap[selectedSender].clear();
+                updateFileListNoScroll();
+                addLogToSystem(`Выбор файлов сброшен`, "#8888aa");
+            };
+            function updateTransferButton() {
+                const btn = document.getElementById("transferBtn");
+                const hasFiles = selectedSender && (selectedFilesMap[selectedSender]?.size || 0) > 0;
+                const hasRecipients = selectedRecipients.size > 0;
+                if (selectedSender && hasFiles && hasRecipients) {
+                    btn.disabled = false;
+                    btn.innerHTML = `ОТПРАВИТЬ В ОЧЕРЕДЬ (${selectedFilesMap[selectedSender].size} файлов → ${selectedRecipients.size} получателей)`;
+                } else {
+                    btn.disabled = true;
+                    if (!selectedSender) btn.innerHTML = "выберите отправителя через [+]";
+                    else if (!hasFiles) btn.innerHTML = "выберите файлы";
+                    else if (!hasRecipients) btn.innerHTML = "выберите получателей (галочки)";
+                    else btn.innerHTML = "[ выберите отправителя ]";
+                }
+            }
+            let activeMenu = null;
+            window.showContextMenu = function (deviceId, event) {
+                event.stopPropagation();
+                if (activeMenu) activeMenu.remove();
+                const menu = document.createElement("div");
+                menu.className = "context-menu";
+                menu.style.left = event.clientX + "px";
+                menu.style.top = event.clientY + "px";
+                menu.innerHTML = `<div class="context-menu-item" onclick="setAsSender('${deviceId}');closeMenu();">сделать отправителем</div>`;
+                document.body.appendChild(menu);
+                activeMenu = menu;
+                setTimeout(() => {
+                    document.addEventListener("click", function handler(e) {
+                        if (!menu.contains(e.target)) {
+                            menu.remove();
+                            activeMenu = null;
+                            document.removeEventListener("click", handler);
+                        }
+                    });
+                }, 10);
+            };
+            window.closeMenu = function () {
+                if (activeMenu) {
+                    activeMenu.remove();
+                    activeMenu = null;
+                }
+            };
+            window.setAsSender = function (deviceId) {
+                selectedSender = deviceId;
+                selectedRecipients.clear();
+                updateFileListNoScroll();
+                updateAllDeviceRoles();
+                addLogToSystem(`${deviceId} назначен ОТПРАВИТЕЛЕМ (IP: ${deviceIPs[deviceId]})`, "#00d9ff");
+                updateTransferButton();
+                updateNetworkDiscovery(true);
+                updateRecipientCounter();
+            };
+            function updateAllDeviceRoles() {
+                document.querySelectorAll(".pc-card, .server-card").forEach((card) => {
+                    const deviceId = card.getAttribute("data-device");
+                    if (!deviceId) return;
+                    card.classList.remove("sender-selected", "recipient-selected");
+                    if (selectedSender === deviceId) card.classList.add("sender-selected");
+                    if (selectedRecipients.has(deviceId)) card.classList.add("recipient-selected");
+                    let badge = card.querySelector(".role-badge");
+                    if (badge) {
+                        if (selectedSender === deviceId) badge.innerHTML = "отправитель";
+                        else if (selectedRecipients.has(deviceId)) badge.innerHTML = "получатель";
+                        else badge.innerHTML = "нет роли";
+                    }
+                    let cancelBtn = card.querySelector(".cancel-role-btn");
+                    if ((selectedSender === deviceId || selectedRecipients.has(deviceId)) && !cancelBtn) {
+                        const btn = document.createElement("div");
+                        btn.className = "cancel-role-btn";
+                        btn.innerHTML = "x";
+                        btn.onclick = (e) => {
+                            e.stopPropagation();
+                            cancelRole(deviceId, e);
+                        };
+                        card.appendChild(btn);
+                    } else if (cancelBtn && !(selectedSender === deviceId || selectedRecipients.has(deviceId))) {
+                        cancelBtn.remove();
+                    }
+                    let chk = card.querySelector(".recipient-checkbox");
+                    if (chk) {
+                        chk.checked = selectedRecipients.has(deviceId);
+                        if (!selectedSender) chk.disabled = true;
+                        else chk.disabled = deviceId === selectedSender;
+                    }
+                });
+            }
+
+            function updateNetworkDiscovery(forceLog = false) {
+                const discoveryDiv = document.getElementById("devicesDiscoveryList");
+                if (selectedSender) {
+                    const otherDevices = allDevices.filter((d) => d !== selectedSender);
+                    const currentCount = otherDevices.length;
+                    const devicesList = otherDevices.map(
+                        (dev) =>
+                            `<div class="discovery-item">${dev} | ${deviceIPs[dev]} | ${dev.startsWith("SRV-") ? "СЕРВЕР" : "РАБОЧАЯ СТАНЦИЯ"}</div>`
+                    );
+                    discoveryDiv.innerHTML =
+                        `<div style="font-size:8px;">Активные узлы (${currentCount}):</div>` + devicesList.join("");
+                    if (!arpReportedFlag) {
+                        addLogToSystem(
+                            `ARP: ${selectedSender} (${deviceIPs[selectedSender]}) обнаружил ${currentCount} устройств в сети`,
+                            "#88aaff",
+                            false
+                        );
+                        arpReportedFlag = true;
+                    }
+                } else {
+                    discoveryDiv.innerHTML =
+                        '<div style="color:#8888aa;">выберите отправителя для просмотра сетевого окружения</div>';
+                    arpReportedFlag = false;
+                }
+            }
+
+            function renderFloorsList() {
+                const container = document.getElementById("floorsListContainer");
+                let html = "";
+                floorData.forEach((floor) => {
+                    const totalServerFiles = files[floor.server]?.length || 0;
+                    const serverSize = (files[floor.server] || []).reduce((s, f) => s + f.size, 0).toFixed(0);
+                    html += `<div class="floor-list-item"><div class="floor-header" onclick="toggleFloorList(${floor.id})"><span class="floor-name">${floor.name}</span><span class="floor-dept">${floor.dept}</span><span class="floor-expand-icon">▼</span></div><div class="floor-devices-container" id="floorListDevices-${floor.id}"><div class="floor-devices-inner"><div class="devices-grid"><div class="server-card" data-device="${floor.server}" onclick="showDeviceFiles('${floor.server}', event)"><input type="checkbox" class="recipient-checkbox" onclick="event.stopPropagation();toggleRecipientCheckbox('${floor.server}', event)" ${selectedRecipients.has(floor.server) ? "checked" : ""} ${!selectedSender || selectedSender === floor.server ? "disabled" : ""}><div class="icon-server"></div><div class="server-name">${floor.server}</div><div class="device-ip">${deviceIPs[floor.server]}</div><div class="server-files">${totalServerFiles} файлов (${serverSize} МБ)</div><div class="role-badge">нет роли</div><div class="server-plus" onclick="event.stopPropagation();showContextMenu('${floor.server}', event)">+</div></div>`;
+                    floor.pcs.forEach((pc) => {
+                        const totalSize = (files[pc] || []).reduce((s, f) => s + f.size, 0).toFixed(0);
+                        html += `<div class="pc-card" data-device="${pc}" onclick="showDeviceFiles('${pc}', event)"><input type="checkbox" class="recipient-checkbox" onclick="event.stopPropagation();toggleRecipientCheckbox('${pc}', event)" ${selectedRecipients.has(pc) ? "checked" : ""} ${!selectedSender || selectedSender === pc ? "disabled" : ""}><div class="icon-pc"></div><div class="pc-name">${pc}</div><div class="device-ip">${deviceIPs[pc]}</div><div class="pc-files">${files[pc]?.length || 0} файлов (${totalSize} МБ)</div><div class="role-badge">нет роли</div><div class="plus-menu-btn" onclick="event.stopPropagation();showContextMenu('${pc}', event)">+</div></div>`;
+                    });
+                    html += `</div></div></div></div>`;
+                });
+                container.innerHTML = html;
+                updateAllDeviceRoles();
+                updateRecipientCounter();
+            }
+            window.toggleFloorList = function (floorId) {
+                const container = document.getElementById(`floorListDevices-${floorId}`);
+                if (container) container.classList.toggle("collapsed");
+            };
+            window.addNewFile = function () {
+                if (!selectedSender) {
+                    addLogToSystem(`Сначала назначьте отправителя через меню [+]`, "#ff4444");
+                    return;
+                }
+                let name = document.getElementById("newFileName").value.trim();
+                let size = parseFloat(document.getElementById("newFileSize").value);
+                let fileType = document.getElementById("newFileType").value;
+                let priority = document.querySelector('input[name="newFilePriority"]:checked').value;
+                if (!name) name = `документ_${Date.now()}`;
+                if (isNaN(size) || size < 5) size = 25;
+                if (size > 450) size = 450;
+                let ext = getExtensionForType(fileType);
+                let fullName = `${name}.${ext}`;
+                let uniqueName = getUniqueFileName(selectedSender, fullName);
+                let protocol = getProtocolForFileType(fileType, priority);
+                files[selectedSender].push({
+                    id: nextFileId++,
+                    name: uniqueName,
+                    size,
+                    fragments: calculateFragments(size),
+                    isOriginal: true,
+                    isServer: selectedSender.startsWith("SRV-"),
+                    protocol,
+                    priority,
+                    fileType,
+                });
+                files[selectedSender].sort((a, b) => {
+                    const order = { high: 0, medium: 1, low: 2 };
+                    return order[a.priority] - order[b.priority];
+                });
+                updateFileListNoScroll();
+                addLogToSystem(
+                    `На ${selectedSender} создан файл "${uniqueName}" (${size}мб, ${protocol}, ${priority.toUpperCase()})`,
+                    "#4caf50"
+                );
+                renderFloorsList();
+            };
+            function startPacketAnimation() {
+                if (packetAnimationInterval) clearInterval(packetAnimationInterval);
+                const packet = document.getElementById("movingPacket");
+                if (!packet) return;
+                let pos = 0;
+                packetAnimationInterval = setInterval(() => {
+                    if (activeTransfers.length > 0) {
+                        pos = (pos + 5) % 98;
+                        packet.style.left = `${pos}%`;
+                        packet.style.opacity = "1";
+                        document.getElementById("senderLabel").innerHTML = activeTransfers[0]?.source || "—";
+                        document.getElementById("receiverLabel").innerHTML = activeTransfers[0]?.dest || "—";
+                    } else {
+                        packet.style.opacity = "0.2";
+                        document.getElementById("senderLabel").innerHTML = "—";
+                        document.getElementById("receiverLabel").innerHTML = "—";
+                    }
+                }, 50);
+            }
+            function updateNetworkLoad() {
+                let totalSpeed = activeTransfers.reduce((sum, t) => sum + t.baseSpeed, 0);
+                let utilization = ((totalSpeed / maxBandwidth) * 100).toFixed(1);
+                document.getElementById("currentLoadLeft").innerHTML = `${totalSpeed.toFixed(0)}m`;
+                document.getElementById("utilizationLeft").innerHTML = `${utilization}%`;
+                document.getElementById("activeCountLeft").innerHTML = activeTransfers.length;
+            }
+            function updateActiveTransfers() {
+                const container = document.getElementById("activeTransfersList");
+                if (activeTransfers.length === 0) {
+                    container.innerHTML = '<div style="color:#8888aa; text-align:center;">нет активных передач</div>';
+                    updateNetworkLoad();
+                    return;
+                }
+                let totalSpeed = 0;
+                container.innerHTML = activeTransfers
+                    .map((t) => {
+                        totalSpeed += t.baseSpeed;
+                        let udpClass = t.protocol === "UDP" ? "udp-transfer" : "";
+                        let lossInfo = "",
+                            fragmentsInfo = "";
+                        if (t.protocol === "UDP") {
+                            fragmentsInfo = `<div class="fragments-info">фрагментов: получено ${t.fragmentsReceived} из ${t.fragments} | потеряно: ${t.fragments - t.fragmentsReceived}</div>`;
+                            if (t.lossRate > 0 && t.fragments - t.fragmentsReceived > 0)
+                                lossInfo = `<div class="loss-warning">ПОТЕРИ: ${t.lossRate.toFixed(1)}%</div>`;
+                        } else {
+                            fragmentsInfo = `<div class="fragments-info">фрагментов: ${t.fragmentsSent} из ${t.fragments}</div>`;
+                        }
+                        return `<div class="transfer-item ${udpClass}" style="border-left-color: ${t.priority === "high" ? "#ff4444" : t.priority === "medium" ? "#ffaa44" : "#44aaff"}"><div><strong>${t.source} → ${t.dest}</strong> <span class="protocol-badge ${t.protocol === "UDP" ? "udp" : "tcp"}">${t.protocol}</span> <span class="priority-badge ${t.priority}">${t.priority}</span></div><div>${t.fileName} (${t.fileSize}мб)</div><div class="progress-bar"><div class="progress-fill ${t.protocol === "UDP" ? "udp-progress" : ""}" style="width:${t.progress}%"></div></div><div>${t.progress.toFixed(0)}%</div>${fragmentsInfo}${lossInfo}</div>`;
+                    })
+                    .join("");
+                updateNetworkLoad();
+            }
+            let packetAnimationInterval;
+            function init() {
+                updateKeyDisplay();
+                renderFloorsList();
+                selectedSender = null;
+                selectedRecipients.clear();
+                updateFileListNoScroll();
+                updateAllDeviceRoles();
+                updateTransferButton();
+                setInterval(simulateTransfers, 500);
+                setInterval(() => {
+                    if (selectedSender) updateNetworkDiscovery(false);
+                }, 5000);
+                startPacketAnimation();
+                document.getElementById("globalCancelBtnLeft").addEventListener("click", resetAllSelection);
+                addLogToSystem("Офисная сеть запущена", "#00ff88");
+                addLogToSystem("Протокол TCP/UDP выбирается автоматически", "#ffaa66");
+            }
+            window.onload = init;
+        </script>
+    </body>
+</html>
